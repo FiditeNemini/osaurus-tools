@@ -8,9 +8,6 @@ on:
       - "scripts/validate.py"
   pull_request:
     branches: [master, main]
-    paths:
-      - "plugins/**"
-      - "scripts/validate.py"
 
 jobs:
   discord-notify:

@@ -1,0 +1,6 @@
+# Require maintainer review for CI/CD workflows and build scripts
+.github/workflows/ @tpae
+scripts/ @tpae
+
+# Require maintainer review for plugin registry entries
+plugins/ @tpae
