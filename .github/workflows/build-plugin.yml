@@ -187,12 +187,21 @@ jobs:
           brew install minisign
           printf '%s\n' "$MINISIGN_SECRET_KEY" > $RUNNER_TEMP/minisign.key
 
+          # Extract bare base64 public key (handle both "RW..." and full file with "untrusted comment" header)
+          if [[ "$MINISIGN_PUBLIC_KEY" == untrusted\ comment:* ]]; then
+            PUBKEY=$(echo "$MINISIGN_PUBLIC_KEY" | grep -v '^untrusted comment:')
+          else
+            PUBKEY="$MINISIGN_PUBLIC_KEY"
+          fi
+
           echo "$MINISIGN_PASSWORD" | minisign -Slm "${{ steps.package.outputs.artifact }}" -s $RUNNER_TEMP/minisign.key
 
-          # Verify the signature using -P (public key string) instead of -p (public key file)
-          minisign -Vm "${{ steps.package.outputs.artifact }}" -P "$MINISIGN_PUBLIC_KEY"
+          # Verify the signature
+          minisign -Vm "${{ steps.package.outputs.artifact }}" -P "$PUBKEY"
           echo "Signature verified successfully"
 
+          # Save bare public key and signature for registry job
+          echo -n "$PUBKEY" > build-data/pubkey.txt
           cp "${{ steps.package.outputs.artifact }}.minisig" build-data/signature.minisig
 
           rm -f $RUNNER_TEMP/minisign.key
@@ -243,14 +252,13 @@ jobs:
           path: build-data/
 
       - name: Generate registry manifest
-        env:
-          MINISIGN_PUBLIC_KEY: ${{ secrets.MINISIGN_PUBLIC_KEY }}
         run: |
           # Read values from artifact files
           PLUGIN_ID=$(cat build-data/plugin_id.txt)
           MANIFEST=$(cat build-data/manifest.json)
           ARTIFACT_URL=$(cat build-data/artifact_url.txt)
           SIGNATURE=$(cat build-data/signature.minisig)
+          MINISIGN_PUBLIC_KEY=$(cat build-data/pubkey.txt)
 
           NAME=$(echo "$MANIFEST" | jq -r '.name // empty')
           DESCRIPTION=$(echo "$MANIFEST" | jq -r '.description // ""')
