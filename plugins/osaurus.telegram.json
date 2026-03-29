@@ -8,12 +8,16 @@
   "capabilities": {
     "tools": [
       {
-        "name": "telegram_send",
-        "description": "Send a message to a Telegram chat. Supports text and reply_markup for inline keyboards."
+        "name": "telegram_list_chats",
+        "description": "List known Telegram chats the bot has interacted with. Can filter by username or chat type. Use this to discover chat IDs before sending messages."
       },
       {
         "name": "telegram_get_chat_history",
         "description": "Retrieve recent messages from the plugin's local message log for a given Telegram chat."
+      },
+      {
+        "name": "telegram_send",
+        "description": "Send a message to a Telegram chat. Supports text and reply_markup for inline keyboards."
       },
       {
         "name": "telegram_send_file",
@@ -275,6 +279,22 @@
           "min_macos": "15.0",
           "minisign": {
             "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViZiNIzrnkyy6jrApeBWpVB8Qy4NQ9TgCKsVOez7vd4hjiDrGBov9wGnFHcT1Y6liZgVfOQ6t3iGC0vVMmTWdYwg=\ntrusted comment: timestamp:1774800759\tfile:osaurus.telegram-1.1.0-macos-arm64.zip\n3lkIBLG9KXZXHI4Awcjz0TStsaHmr9nn2/jpATkQIPDxCOyOz2YFANNHZyhAu3eNluJkMzfhcyDhukP5JSxCAw=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.1.1",
+      "release_date": "2026-03-29",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-telegram/releases/download/1.1.1/osaurus.telegram-1.1.1-macos-arm64.zip",
+          "sha256": "38a92021e238ede44c685d79d8a3207968b1bf0fe0db3153fdb25e159089726c",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VieY2b+9uMDN2MOpvixnXIB5u4aEM3xqlXq2+3goUJPnL+EFsQtNRp4PE6BqjR+1Mi9oSOGw9lFutzL5RErELDwk=\ntrusted comment: timestamp:1774805004\tfile:osaurus.telegram-1.1.1-macos-arm64.zip\nURbPhPtI0MvsZHMjPdgmefeS14RnQDQtDmkOaGpl8OkorHI7PsOTMOv2D827tlCmB5bOiP6uHhHVbqRXrbGWAQ=="
           }
         }
       ]
