@@ -9,11 +9,15 @@
     "tools": [
       {
         "name": "telegram_send",
-        "description": "Send a message to a Telegram chat. Supports text, markdown, and reply_markup for inline keyboards."
+        "description": "Send a message to a Telegram chat. Supports text and reply_markup for inline keyboards."
       },
       {
         "name": "telegram_get_chat_history",
         "description": "Retrieve recent messages from the plugin's local message log for a given Telegram chat."
+      },
+      {
+        "name": "telegram_send_file",
+        "description": "Upload a file (photo or document) to a Telegram chat. Reads files from Osaurus artifact paths."
       }
     ],
     "routes": [
@@ -255,6 +259,22 @@
           "min_macos": "15.0",
           "minisign": {
             "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VieANlXbgWowC3bpQOE6lJqKezmBd7DrfA6oqUo5ahac5sfxuvmnGVi95EfE5ssoiakdS1VSH/qvIGZdNCKnKBgU=\ntrusted comment: timestamp:1772563008\tfile:osaurus.telegram-1.0.9-macos-arm64.zip\n84lHWXy9GwOlZc2GqfHr76Ui1C/ZG71fM0AF8KkCPs0JkydVrMNEPuO97Nmw+Lwpf9B+P6WI7R7E9wbMR/poBA=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "release_date": "2026-03-29",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-telegram/releases/download/1.1.0/osaurus.telegram-1.1.0-macos-arm64.zip",
+          "sha256": "938c0a84771c634d5366b0faf0744dd4b548050876215d00d0c9ea0342662fcb",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViZiNIzrnkyy6jrApeBWpVB8Qy4NQ9TgCKsVOez7vd4hjiDrGBov9wGnFHcT1Y6liZgVfOQ6t3iGC0vVMmTWdYwg=\ntrusted comment: timestamp:1774800759\tfile:osaurus.telegram-1.1.0-macos-arm64.zip\n3lkIBLG9KXZXHI4Awcjz0TStsaHmr9nn2/jpATkQIPDxCOyOz2YFANNHZyhAu3eNluJkMzfhcyDhukP5JSxCAw=="
           }
         }
       ]
