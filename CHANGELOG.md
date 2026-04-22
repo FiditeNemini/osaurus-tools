@@ -79,14 +79,26 @@ discoverable through the registry.
   `page` pagination. Fixes `uddg=` redirect unwrapping in the DDG-lite path
   and the numeric-HTML-entity decoder. New `search_and_extract` runs search
   + Readability-fetch on the top N URLs in one call.
-- **`osaurus.browser`** — snapshots are now ARIA-YAML with inline `[E1]` refs
-  for parity with Playwright MCP and Cursor's browser MCP. Adds
-  `browser_tabs`, `browser_console_messages`, `browser_network_requests`,
-  `browser_handle_dialog`, `browser_file_upload`, `browser_set_viewport`,
-  `browser_set_user_agent`, `browser_cookies`, and explicit
-  `browser_lock` / `browser_unlock` for multi-agent safety. `wait_until:
-  "networkidle"` now uses real request instrumentation. `escapeSelector` is
-  hardened.
+- **`osaurus.browser`** — **per-agent persistent browser sessions**: each
+  Osaurus agent now has its own on-disk `WKWebsiteDataStore` keyed by a
+  per-agent `profile_id`, so cookies / localStorage / IndexedDB survive
+  across runs and stay isolated between agents. Agent-triggered sign-in via
+  the new `browser_open_login` tool, which pops a visible `WKWebView`
+  bound to the same data store — the user signs in once (OAuth, 2FA,
+  captchas all work in a real window) and the headless instance is
+  immediately authenticated. New `browser_reset_session` wipes the active
+  agent's profile. `browser_navigate` now returns a structured
+  `LOGIN_REQUIRED` error envelope when navigation lands on a login page,
+  so the agent never has to ask the user for credentials in chat. Plugin
+  upgraded to **ABI v2** to receive the host's per-agent
+  `config_get` / `config_set` callbacks. `min_macos` raised to **14.0**
+  for `WKWebsiteDataStore(forIdentifier:)`. Snapshots are ARIA-YAML with
+  inline `[E1]` refs for parity with Playwright MCP and Cursor's browser
+  MCP. Also adds `browser_console_messages`, `browser_network_requests`,
+  `browser_handle_dialog`, `browser_set_viewport`, `browser_set_user_agent`,
+  `browser_cookies`, and explicit `browser_lock` / `browser_unlock` for
+  multi-agent safety. `wait_until: "networkidle"` uses real request
+  instrumentation. `escapeSelector` is hardened.
 
 ### Notes on signing
 

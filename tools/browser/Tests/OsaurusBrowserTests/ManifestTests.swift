@@ -103,6 +103,8 @@ final class ManifestTests: XCTestCase {
             "browser_console_messages", "browser_network_requests",
             "browser_handle_dialog", "browser_set_viewport",
             "browser_set_user_agent", "browser_cookies", "browser_lock",
+            // 2.0.0 per-agent session tools
+            "browser_open_login", "browser_reset_session",
         ]
 
         let toolIds = getTools().compactMap { $0["id"] as? String }
@@ -185,5 +187,87 @@ final class ManifestTests: XCTestCase {
             return
         }
         XCTAssertEqual(Set(values), Set(["accept", "dismiss", "status"]))
+    }
+
+    // MARK: - Per-agent session tools
+
+    func testManifestDeclaresAbiV2() {
+        // ABI v2 is required so Osaurus surfaces per-agent config_get / config_set
+        // to the SessionManager. We can't read api.version from the manifest JSON
+        // directly, but we can confirm the tools that depend on it are present.
+        XCTAssertNotNil(getTool(id: "browser_open_login"), "browser_open_login requires ABI v2")
+        XCTAssertNotNil(getTool(id: "browser_reset_session"), "browser_reset_session requires ABI v2")
+    }
+
+    func testOpenLoginAcceptsURLAndTimeout() {
+        guard let tool = getTool(id: "browser_open_login"),
+            let params = tool["parameters"] as? [String: Any],
+            let props = params["properties"] as? [String: Any]
+        else {
+            XCTFail("browser_open_login parameters not found")
+            return
+        }
+        XCTAssertNotNil(props["url"], "browser_open_login should accept optional 'url'")
+        XCTAssertNotNil(props["timeout_ms"], "browser_open_login should accept optional 'timeout_ms'")
+
+        // url must be optional — the user may want to open a blank window
+        // and navigate freely.
+        let required = (params["required"] as? [String]) ?? []
+        XCTAssertFalse(required.contains("url"), "browser_open_login.url must be optional")
+    }
+
+    func testOpenLoginIsAskPolicy() {
+        guard let tool = getTool(id: "browser_open_login") else {
+            XCTFail("browser_open_login missing")
+            return
+        }
+        XCTAssertEqual(
+            tool["permission_policy"] as? String, "ask",
+            "browser_open_login pops a window — must require user approval per call"
+        )
+    }
+
+    func testResetSessionIsAskPolicy() {
+        guard let tool = getTool(id: "browser_reset_session") else {
+            XCTFail("browser_reset_session missing")
+            return
+        }
+        XCTAssertEqual(
+            tool["permission_policy"] as? String, "ask",
+            "browser_reset_session is destructive — must require user approval per call"
+        )
+    }
+
+    func testManifestRequiresMacOS14() {
+        // WKWebsiteDataStore(forIdentifier:) is macOS 14+, so the manifest
+        // must surface that requirement to Osaurus' install gate.
+        XCTAssertEqual(manifest["min_macos"] as? String, "14.0")
+    }
+}
+
+// MARK: - SessionManager isolation
+
+final class SessionManagerTests: XCTestCase {
+
+    func testFallbackProfileIsStableAcrossCalls() {
+        // Without a v2 host installed (the default in `swift test`), the
+        // manager must reuse a single fallback UUID instead of minting a
+        // fresh one each call — otherwise we'd burn an unbounded number of
+        // ephemeral data stores.
+        let first = SessionManager.shared.currentProfileId()
+        let second = SessionManager.shared.currentProfileId()
+        XCTAssertEqual(
+            first, second,
+            "currentProfileId() must be stable across calls when host bridge is absent"
+        )
+    }
+
+    func testHostBridgeNotInstalledByDefault() {
+        // Sanity check: in unit tests we never call osaurus_plugin_entry_v2,
+        // so the host bridge should report not-installed.
+        XCTAssertFalse(
+            HostBridge.shared.isInstalled,
+            "HostBridge should report uninstalled when run outside Osaurus"
+        )
     }
 }

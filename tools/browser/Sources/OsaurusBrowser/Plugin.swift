@@ -13,8 +13,16 @@ enum DetailLevel: String {
 
 // MARK: - Headless Browser Manager
 
-/// Manages a headless WKWebView instance for browser automation
+/// Manages a headless WKWebView instance for browser automation. Each agent
+/// has its own instance, keyed by `profileId`, with cookies / localStorage /
+/// IndexedDB persisted on disk via `WKWebsiteDataStore(forIdentifier:)` so
+/// sessions survive across runs.
 class HeadlessBrowser: NSObject, WKNavigationDelegate, WKUIDelegate {
+    /// Per-agent identifier — used to scope this browser's `WKWebsiteDataStore`
+    /// so two agents never share cookies. Same identifier is reused by the
+    /// `LoginWindow` so credentials entered there flow back here automatically.
+    let profileId: UUID
+
     private var webView: WKWebView!
     private var navigationSemaphore = DispatchSemaphore(value: 0)
     private var navigationError: Error?
@@ -47,7 +55,8 @@ class HeadlessBrowser: NSObject, WKNavigationDelegate, WKUIDelegate {
     private var lockState = LockState(locked: false, owner: nil, acquiredAt: nil)
     private let lockQueue = DispatchQueue(label: "osaurus.browser.lock")
 
-    override init() {
+    init(profileId: UUID) {
+        self.profileId = profileId
         super.init()
 
         // Ensure we're on the main thread for WebKit operations
@@ -63,6 +72,13 @@ class HeadlessBrowser: NSObject, WKNavigationDelegate, WKUIDelegate {
     private func setupWebView() {
         let config = WKWebViewConfiguration()
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
+
+        // Per-agent persistent storage. Cookies, localStorage, IndexedDB all
+        // live under this identifier, so two agents stay isolated and the
+        // helper LoginWindow can write cookies that flow straight back here.
+        if #available(macOS 14.0, *) {
+            config.websiteDataStore = WKWebsiteDataStore(forIdentifier: profileId)
+        }
 
         // Set up user agent to appear as a real browser
         config.applicationNameForUserAgent =
@@ -87,6 +103,25 @@ class HeadlessBrowser: NSObject, WKNavigationDelegate, WKUIDelegate {
         // Enable JavaScript
         if #available(macOS 14.0, *) {
             webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        }
+    }
+
+    /// Releases the underlying webview. Must be called on the main thread
+    /// before removing the data store, otherwise WebKit complains about an
+    /// in-use store. Safe to call multiple times.
+    func tearDown() {
+        if Thread.isMainThread {
+            webView?.stopLoading()
+            webView?.navigationDelegate = nil
+            webView?.uiDelegate = nil
+            webView = nil
+        } else {
+            DispatchQueue.main.sync {
+                self.webView?.stopLoading()
+                self.webView?.navigationDelegate = nil
+                self.webView?.uiDelegate = nil
+                self.webView = nil
+            }
         }
     }
 
@@ -1838,15 +1873,19 @@ class PluginContext {
         return result
     }
 
-    lazy var browser: HeadlessBrowser = {
+    /// Returns the active agent's `HeadlessBrowser`, lazily spawning one keyed
+    /// by the per-agent `profile_id` retrieved from the host's keychain. Two
+    /// different agents calling this in parallel get two distinct browsers
+    /// with two distinct on-disk data stores.
+    var browser: HeadlessBrowser {
         // Ensure NSApplication is initialized for WebKit
         if NSApp == nil {
             DispatchQueue.main.sync {
                 _ = NSApplication.shared
             }
         }
-        return HeadlessBrowser()
-    }()
+        return SessionManager.shared.driver()
+    }
 
     // MARK: - Helpers
 
@@ -1886,9 +1925,144 @@ class PluginContext {
             return "{\"error\": \"\(escapeJSON(result.error ?? "Unknown error"))\"}"
         }
 
+        // After successful navigation, check whether we landed on a login page.
+        // If so, surface a structured LOGIN_REQUIRED error so the agent can
+        // proactively call `browser_open_login` instead of asking the user
+        // for credentials in chat.
+        if let loginEnvelope = checkForLoginRedirect(originalURL: input.url) {
+            return loginEnvelope
+        }
+
         let detail = parseDetail(input.detail)
         return autoSnapshot(detail: detail, actionPrefix: "Action: navigate to \(input.url) succeeded")
     }
+
+    /// Heuristic check for "this navigation landed on a login page". Looks at
+    /// the final URL path and the document title. Conservative — false
+    /// negatives are fine (the agent can still proceed), false positives are
+    /// the worse failure mode (annoys the user). Returns the JSON envelope to
+    /// return on match, or `nil` if the page does not look like a login page.
+    private func checkForLoginRedirect(originalURL: String) -> String? {
+        let finalURL = browser.currentURL ?? originalURL
+        let title = browser.currentTitle ?? ""
+        let path = URL(string: finalURL)?.path.lowercased() ?? ""
+        let host = URL(string: finalURL)?.host ?? ""
+
+        let pathHints = ["/login", "/signin", "/sign-in", "/sign_in", "/auth", "/account/login", "/users/sign_in"]
+        let titlePattern = #"^(sign in|log in|login|authentication)"#
+
+        let pathMatch = pathHints.contains(where: { path.contains($0) })
+        let titleMatch = title.range(of: titlePattern, options: [.regularExpression, .caseInsensitive]) != nil
+
+        guard pathMatch || titleMatch else { return nil }
+
+        let error: [String: Any] = [
+            "code": "LOGIN_REQUIRED",
+            "message": "Navigation landed on a login page (\(host))",
+            "domain": host,
+            "url": finalURL,
+            "hint":
+                "Call browser_open_login with this URL so the user can sign in, then retry the original navigation. Do not ask the user for credentials in chat — the helper window handles authentication, including 2FA.",
+        ]
+        return jsonEnvelope(["ok": false, "error": error])
+    }
+
+    /// Opens a visible login window for the active agent's profile. Returns
+    /// after the user closes the window or after `timeout_ms` elapses.
+    func openLogin(args: String) -> String {
+        struct Args: Decodable {
+            let url: String?
+            let timeout_ms: Int?
+        }
+        let parsed = (try? JSONDecoder().decode(Args.self, from: Data(args.utf8)))
+            ?? Args(url: nil, timeout_ms: nil)
+
+        let timeoutSeconds = TimeInterval(max(1000, parsed.timeout_ms ?? 300_000)) / 1000.0
+        let initialURL: URL?
+        if let raw = parsed.url, !raw.isEmpty {
+            if raw.contains("://") {
+                initialURL = URL(string: raw)
+            } else {
+                initialURL = URL(string: "https://" + raw)
+            }
+        } else {
+            initialURL = nil
+        }
+
+        // Ensure NSApplication is initialized (we may be invoked before any
+        // other UI tool has touched AppKit).
+        if NSApp == nil {
+            DispatchQueue.main.sync { _ = NSApplication.shared }
+        }
+
+        let profileId = SessionManager.shared.currentProfileId()
+
+        // Bridge the async LoginWindow.present(...) call back to this
+        // synchronous tool handler. The C ABI requires a string return on
+        // the same call, and `invoke` already runs on a non-main background
+        // thread per ExternalPlugin.
+        let semaphore = DispatchSemaphore(value: 0)
+        var capturedResult: LoginWindow.LoginResult?
+
+        DispatchQueue.main.async {
+            let win = LoginWindow(profileId: profileId, initialURL: initialURL)
+            // Retain the window controller for the duration of the wait.
+            objc_setAssociatedObject(win, &Self.loginWindowKey, win, .OBJC_ASSOCIATION_RETAIN)
+            Task { @MainActor in
+                let res = await win.present(timeoutSeconds: timeoutSeconds)
+                capturedResult = res
+                semaphore.signal()
+            }
+        }
+
+        let waitResult = semaphore.wait(timeout: .now() + timeoutSeconds + 5)
+        if waitResult == .timedOut || capturedResult == nil {
+            return envelopeError(
+                "LOGIN_TIMEOUT",
+                "Login window did not close within the timeout.",
+                hint: "Increase timeout_ms, or call browser_open_login again."
+            )
+        }
+
+        let result = capturedResult!
+        var data: [String: Any] = [
+            "closed_at": ISO8601DateFormatter().string(from: result.closedAt),
+            "timed_out": result.timedOut,
+            "profile_id": profileId.uuidString,
+        ]
+        if let url = result.finalURL { data["final_url"] = url }
+        return envelopeOK(data)
+    }
+
+    /// Tears down the active agent's session: closes the headless browser and
+    /// removes its on-disk `WKWebsiteDataStore`. Next tool call respawns a
+    /// fresh empty profile.
+    func resetSession(args _: String) -> String {
+        let semaphore = DispatchSemaphore(value: 0)
+        var success = false
+        var errorMsg: String?
+
+        SessionManager.shared.resetActiveSession { ok, err in
+            success = ok
+            errorMsg = err
+            semaphore.signal()
+        }
+        _ = semaphore.wait(timeout: .now() + 10)
+
+        if !success {
+            return envelopeError(
+                "RESET_FAILED",
+                errorMsg ?? "Failed to remove the active agent's session data store.",
+                hint: errorMsg?.contains("macOS") == true ? "Per-agent sessions require macOS 14 or newer." : nil
+            )
+        }
+        return envelopeOK([
+            "reset": true,
+            "message": "Session cleared. Next tool call will start with a fresh logged-out profile.",
+        ])
+    }
+
+    private static var loginWindowKey: UInt8 = 0
 
     func snapshot(args: String) -> String {
         struct Args: Decodable {
@@ -2531,13 +2705,27 @@ private typealias osr_invoke_t =
         UnsafePointer<CChar>?,
         UnsafePointer<CChar>?
     ) -> UnsafePointer<CChar>?
+private typealias osr_handle_route_t =
+    @convention(c) (osr_plugin_ctx_t?, UnsafePointer<CChar>?) -> UnsafePointer<CChar>?
+private typealias osr_on_config_changed_t =
+    @convention(c) (osr_plugin_ctx_t?, UnsafePointer<CChar>?, UnsafePointer<CChar>?) -> Void
+private typealias osr_on_task_event_t =
+    @convention(c) (osr_plugin_ctx_t?, UnsafePointer<CChar>?, Int32, UnsafePointer<CChar>?) -> Void
 
+/// Layout-compatible mirror of `osr_plugin_api` from osaurus_plugin.h.
+/// V2 trailing fields are present even when unused so Osaurus reads
+/// `version = 2` correctly and detects the ABI level.
 private struct osr_plugin_api {
     var free_string: osr_free_string_t?
     var `init`: osr_init_t?
     var destroy: osr_destroy_t?
     var get_manifest: osr_get_manifest_t?
     var invoke: osr_invoke_t?
+    // v2 fields
+    var version: UInt32 = 0
+    var handle_route: osr_handle_route_t?
+    var on_config_changed: osr_on_config_changed_t?
+    var on_task_event: osr_on_task_event_t?
 }
 
 private func makeCString(_ s: String) -> UnsafePointer<CChar>? {
@@ -2547,6 +2735,12 @@ private func makeCString(_ s: String) -> UnsafePointer<CChar>? {
 
 private var api: osr_plugin_api = {
     var api = osr_plugin_api()
+
+    // Declare ABI v2 so Osaurus reads the trailing fields. The route /
+    // task-event handlers stay null because this plugin doesn't use them;
+    // ABI v2 still gives us per-agent-scoped config_get / config_set on the
+    // host side, which SessionManager relies on for profile_id storage.
+    api.version = 2
 
     api.free_string = { ptr in
         if let p = ptr { free(UnsafeMutableRawPointer(mutating: p)) }
@@ -2558,6 +2752,9 @@ private var api: osr_plugin_api = {
     }
 
     api.destroy = { ctxPtr in
+        // Tear down every pooled per-agent browser before the plugin is
+        // unloaded so WebKit releases its data stores cleanly.
+        SessionManager.shared.shutdownAll()
         guard let ctxPtr = ctxPtr else { return }
         Unmanaged<PluginContext>.fromOpaque(ctxPtr).release()
     }
@@ -2570,7 +2767,7 @@ private var api: osr_plugin_api = {
               "description": "Agent-friendly headless WebKit browser. Element refs from snapshots, batched actions, console & network inspection, dialog handling, viewport / UA control, cookies, and a cooperative lock for multi-agent safety.",
               "license": "MIT",
               "authors": ["Osaurus Team"],
-              "min_macos": "13.0",
+              "min_macos": "14.0",
               "min_osaurus": "0.5.0",
               "capabilities": {
                 "tools": [
@@ -2881,12 +3078,37 @@ private var api: osr_plugin_api = {
                     },
                     "requirements": [],
                     "permission_policy": "allow"
+                  },
+                  {
+                    "id": "browser_open_login",
+                    "description": "Opens a visible browser window so the user can sign in to a website. Cookies persist per-agent — once signed in, subsequent browser_navigate calls run logged-in. Call this when you receive a LOGIN_REQUIRED error from browser_navigate, or when the user explicitly asks to sign in. NEVER ask the user for passwords or 2FA codes in chat — this tool handles authentication via the helper window.",
+                    "parameters": {
+                      "type": "object",
+                      "properties": {
+                        "url": {"type": "string", "description": "Optional URL to open in the helper window. If omitted, the window opens with a small prompt that lets the user enter any URL."},
+                        "timeout_ms": {"type": "integer", "description": "Maximum time to wait for the user to close the window, in milliseconds. Default 300000 (5 minutes)."}
+                      },
+                      "required": []
+                    },
+                    "requirements": [],
+                    "permission_policy": "ask"
+                  },
+                  {
+                    "id": "browser_reset_session",
+                    "description": "Wipes the active agent's persistent browser session — closes the headless browser and removes its on-disk data store (cookies, localStorage, IndexedDB, cache). Next browser_navigate spawns a fresh logged-out profile. Use this when the user asks to 'sign out of everything' or when authentication state is corrupted. Destructive — confirm with the user first.",
+                    "parameters": {
+                      "type": "object",
+                      "properties": {},
+                      "required": []
+                    },
+                    "requirements": [],
+                    "permission_policy": "ask"
                   }
                 ],
                 "skills": [
                   {
                     "name": "osaurus-browser",
-                    "description": "Teaches the agent how to use the headless browser tools — refs, batching, detail levels, console/network inspection, dialogs, viewport/UA, cookies, and lock/unlock for multi-agent safety."
+                    "description": "Teaches the agent how to use the headless browser tools — per-agent persistent sessions, the open_login helper, refs, batching, detail levels, console/network inspection, dialogs, viewport/UA, cookies, and lock/unlock for multi-agent safety."
                   }
                 ]
               }
@@ -2950,6 +3172,10 @@ private var api: osr_plugin_api = {
             return makeCString(ctx.cookies(args: payload))
         case "browser_lock":
             return makeCString(ctx.lock(args: payload))
+        case "browser_open_login":
+            return makeCString(ctx.openLogin(args: payload))
+        case "browser_reset_session":
+            return makeCString(ctx.resetSession(args: payload))
         default:
             return makeCString("{\"error\": \"Unknown tool: \(id)\"}")
         }
@@ -2960,5 +3186,18 @@ private var api: osr_plugin_api = {
 
 @_cdecl("osaurus_plugin_entry")
 public func osaurus_plugin_entry() -> UnsafeRawPointer? {
+    return UnsafeRawPointer(&api)
+}
+
+/// V2 entry point. Osaurus tries this symbol first; if present it passes the
+/// host API struct so the plugin can call back into the host for config
+/// (per-agent keychain), logging, etc. We capture the host API into the
+/// shared `HostBridge` and return the same plugin API as v1.
+@_cdecl("osaurus_plugin_entry_v2")
+public func osaurus_plugin_entry_v2(_ host: UnsafeRawPointer?) -> UnsafeRawPointer? {
+    if let host = host {
+        let ptr = host.assumingMemoryBound(to: osr_host_api.self)
+        HostBridge.shared.install(api: ptr.pointee)
+    }
     return UnsafeRawPointer(&api)
 }
