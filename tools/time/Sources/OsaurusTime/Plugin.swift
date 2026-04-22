@@ -590,6 +590,12 @@ private var api: osr_plugin_api = {
                     "requirements": [],
                     "permission_policy": "allow"
                   }
+                ],
+                "skills": [
+                  {
+                    "name": "osaurus-time",
+                    "description": "Teaches the agent how to use the time tools — current time, timezone conversion, parsing dates, formatting, date arithmetic."
+                  }
                 ]
               }
             }

@@ -1186,6 +1186,12 @@ private var api: osr_plugin_api = {
                     "requirements": [],
                     "permission_policy": "allow"
                   }
+                ],
+                "skills": [
+                  {
+                    "name": "osaurus-search",
+                    "description": "Teaches the agent how to use the web search tools — DuckDuckGo / Brave / Bing scraping by default, optional API backends (Tavily, Brave Search API, Serper, Google CSE, Kagi, You.com)."
+                  }
                 ]
               }
             }

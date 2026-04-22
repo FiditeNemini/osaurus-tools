@@ -85,6 +85,12 @@
         "name": "browser_lock",
         "description": "Cooperative lock for multi-agent safety. Call action='lock' before a critical sequence and action='unlock' after. Other agents are expected to honor this lock; it is advisory, not enforced."
       }
+    ],
+    "skills": [
+      {
+        "name": "osaurus-browser",
+        "description": "Teaches the agent how to use the headless browser tools — refs, batching, detail levels, console/network inspection, dialogs, viewport/UA, cookies, and lock/unlock for multi-agent safety."
+      }
     ]
   },
   "versions": [

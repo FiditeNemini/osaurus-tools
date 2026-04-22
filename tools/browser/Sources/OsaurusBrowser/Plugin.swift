@@ -2882,6 +2882,12 @@ private var api: osr_plugin_api = {
                     "requirements": [],
                     "permission_policy": "allow"
                   }
+                ],
+                "skills": [
+                  {
+                    "name": "osaurus-browser",
+                    "description": "Teaches the agent how to use the headless browser tools — refs, batching, detail levels, console/network inspection, dialogs, viewport/UA, cookies, and lock/unlock for multi-agent safety."
+                  }
                 ]
               }
             }

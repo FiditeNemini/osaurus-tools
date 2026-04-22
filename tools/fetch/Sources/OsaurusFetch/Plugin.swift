@@ -1260,6 +1260,12 @@ private var api: osr_plugin_api = {
                     "requirements": [],
                     "permission_policy": "ask"
                   }
+                ],
+                "skills": [
+                  {
+                    "name": "osaurus-fetch",
+                    "description": "Teaches the agent how to use the HTTP fetch tools — JSON APIs, Readability HTML extraction, file downloads, with built-in SSRF and size limits."
+                  }
                 ]
               }
             }

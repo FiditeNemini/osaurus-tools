@@ -25,6 +25,12 @@
         "name": "download",
         "description": "Download a file into ~/Downloads. Filename must be a plain name (no path separators, no '..', no leading '.' or '~'). Resolved path is verified to stay under ~/Downloads."
       }
+    ],
+    "skills": [
+      {
+        "name": "osaurus-fetch",
+        "description": "Teaches the agent how to use the HTTP fetch tools — JSON APIs, Readability HTML extraction, file downloads, with built-in SSRF and size limits."
+      }
     ]
   },
   "versions": [

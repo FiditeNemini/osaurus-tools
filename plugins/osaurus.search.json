@@ -25,6 +25,12 @@
         "name": "search_and_extract",
         "description": "Run a search and Readability-extract the top N URLs in one call. Each enriched result includes 'markdown', 'title', 'byline', 'lang', 'word_count', and 'extracted'."
       }
+    ],
+    "skills": [
+      {
+        "name": "osaurus-search",
+        "description": "Teaches the agent how to use the web search tools — DuckDuckGo / Brave / Bing scraping by default, optional API backends (Tavily, Brave Search API, Serper, Google CSE, Kagi, You.com)."
+      }
     ]
   },
   "versions": [

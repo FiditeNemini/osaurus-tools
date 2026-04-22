@@ -37,6 +37,12 @@
         "name": "list_timezones",
         "description": "List all known IANA timezone identifiers, optionally filtered by prefix. Use this to validate user-supplied zones."
       }
+    ],
+    "skills": [
+      {
+        "name": "osaurus-time",
+        "description": "Teaches the agent how to use the time tools — current time, timezone conversion, parsing dates, formatting, date arithmetic."
+      }
     ]
   },
   "versions": [
