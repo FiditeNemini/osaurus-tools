@@ -76,9 +76,7 @@ class HeadlessBrowser: NSObject, WKNavigationDelegate, WKUIDelegate {
         // Per-agent persistent storage. Cookies, localStorage, IndexedDB all
         // live under this identifier, so two agents stay isolated and the
         // helper LoginWindow can write cookies that flow straight back here.
-        if #available(macOS 14.0, *) {
-            config.websiteDataStore = WKWebsiteDataStore(forIdentifier: profileId)
-        }
+        config.websiteDataStore = WKWebsiteDataStore(forIdentifier: profileId)
 
         // Set up user agent to appear as a real browser
         config.applicationNameForUserAgent =
@@ -100,28 +98,37 @@ class HeadlessBrowser: NSObject, WKNavigationDelegate, WKUIDelegate {
         webView.navigationDelegate = self
         webView.uiDelegate = self
 
-        // Enable JavaScript
-        if #available(macOS 14.0, *) {
-            webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = true
-        }
+        webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = true
     }
 
-    /// Releases the underlying webview. Must be called on the main thread
-    /// before removing the data store, otherwise WebKit complains about an
-    /// in-use store. Safe to call multiple times.
+    /// Returns the live `WKWebsiteDataStore` backing this browser, or `nil` if
+    /// the webview has already been torn down. Used by `SessionManager` to
+    /// wipe per-agent storage in place via `removeData(ofTypes:modifiedSince:)`,
+    /// which is the only safe way to clear a per-identifier store while the
+    /// WebKit Networking process may still hold it open. Calling
+    /// `WKWebsiteDataStore.remove(forIdentifier:)` from the same async hop as
+    /// the webview teardown races with the storage XPC and has been observed
+    /// to crash inside `WebsiteDataStore::removeDataStoreWithIdentifierImpl`'s
+    /// completion lambda on macOS 14+.
+    var websiteDataStore: WKWebsiteDataStore? {
+        return webView?.configuration.websiteDataStore
+    }
+
+    /// Releases the underlying webview. Safe to call multiple times. Callers
+    /// that need to wipe the per-agent on-disk storage should grab
+    /// `websiteDataStore` *before* calling this and invoke
+    /// `removeData(ofTypes:modifiedSince:)` on it.
     func tearDown() {
+        let work = { [weak self] in
+            self?.webView?.stopLoading()
+            self?.webView?.navigationDelegate = nil
+            self?.webView?.uiDelegate = nil
+            self?.webView = nil
+        }
         if Thread.isMainThread {
-            webView?.stopLoading()
-            webView?.navigationDelegate = nil
-            webView?.uiDelegate = nil
-            webView = nil
+            work()
         } else {
-            DispatchQueue.main.sync {
-                self.webView?.stopLoading()
-                self.webView?.navigationDelegate = nil
-                self.webView?.uiDelegate = nil
-                self.webView = nil
-            }
+            DispatchQueue.main.sync(execute: work)
         }
     }
 
@@ -1974,7 +1981,8 @@ class PluginContext {
             let url: String?
             let timeout_ms: Int?
         }
-        let parsed = (try? JSONDecoder().decode(Args.self, from: Data(args.utf8)))
+        let parsed =
+            (try? JSONDecoder().decode(Args.self, from: Data(args.utf8)))
             ?? Args(url: nil, timeout_ms: nil)
 
         let timeoutSeconds = TimeInterval(max(1000, parsed.timeout_ms ?? 300_000)) / 1000.0

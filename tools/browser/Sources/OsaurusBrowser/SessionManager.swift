@@ -36,7 +36,8 @@ final class SessionManager: @unchecked Sendable {
             return fallbackProfileId
         }
         if let stored = HostBridge.shared.configGet("profile_id"),
-           let uuid = UUID(uuidString: stored) {
+            let uuid = UUID(uuidString: stored)
+        {
             return uuid
         }
         let new = UUID()
@@ -56,30 +57,40 @@ final class SessionManager: @unchecked Sendable {
         }
     }
 
-    /// Tears down the active agent's session: removes the pooled browser and
-    /// deletes its on-disk `WKWebsiteDataStore`. Next `driver()` call respawns
-    /// a fresh one. The default keychain entry (`profile_id`) is also cleared
-    /// so the next session gets a brand-new UUID.
+    /// Tears down the active agent's session: removes the pooled browser,
+    /// wipes every cookie / localStorage / IndexedDB / cache entry under its
+    /// `WKWebsiteDataStore`, and clears the persisted `profile_id` so the next
+    /// `driver()` call mints a brand-new UUID and a fresh isolated store.
+    ///
+    /// We deliberately do *not* call `WKWebsiteDataStore.remove(forIdentifier:)`.
+    /// That API races with the WebKit Networking / Storage XPC processes that
+    /// still hold the per-identifier store open even after the last
+    /// `WKWebView` is released; the internal completion lambda inside
+    /// `WebsiteDataStore::removeDataStoreWithIdentifierImpl` then dispatches to
+    /// a NULL `RunLoop` and segfaults the host process inside
+    /// `com.apple.WebKit.WebsiteDataStoreIO`. Wiping the store in place via
+    /// `removeData(ofTypes:modifiedSince:)` and orphaning the on-disk directory
+    /// under a freshly minted identifier is observably equivalent (next session
+    /// is logged out and isolated) without the crash.
     func resetActiveSession(completion: @escaping (Bool, String?) -> Void) {
         let profileId = currentProfileId()
         let removed: HeadlessBrowser? = lock.withLock {
-            return pool.removeValue(forKey: profileId)
+            pool.removeValue(forKey: profileId)
         }
-        // Tear down the existing webview on main thread before removing the
-        // data store, otherwise WebKit may complain about an in-use store.
         DispatchQueue.main.async {
+            // Grab the live data store *before* tearing down the webview so a
+            // strong reference outlives the wipe.
+            let store =
+                removed?.websiteDataStore
+                ?? WKWebsiteDataStore(forIdentifier: profileId)
             removed?.tearDown()
-            HostBridge.shared.configDelete("profile_id")
-            if #available(macOS 14.0, *) {
-                WKWebsiteDataStore.remove(forIdentifier: profileId) { error in
-                    if let error = error {
-                        completion(false, error.localizedDescription)
-                    } else {
-                        completion(true, nil)
-                    }
-                }
-            } else {
-                completion(false, "Per-agent sessions require macOS 14 or newer")
+
+            store.removeData(
+                ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+                modifiedSince: .distantPast
+            ) {
+                HostBridge.shared.configDelete("profile_id")
+                completion(true, nil)
             }
         }
     }

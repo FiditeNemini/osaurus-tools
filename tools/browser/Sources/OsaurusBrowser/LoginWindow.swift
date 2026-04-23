@@ -61,9 +61,7 @@ final class LoginWindow: NSObject, NSWindowDelegate, WKNavigationDelegate {
         guard window == nil else { return }
 
         let config = WKWebViewConfiguration()
-        if #available(macOS 14.0, *) {
-            config.websiteDataStore = WKWebsiteDataStore(forIdentifier: profileId)
-        }
+        config.websiteDataStore = WKWebsiteDataStore(forIdentifier: profileId)
         // Make the helper window look like a normal browser to the page so
         // login flows and risk-based 2FA behave consistently with what the
         // headless instance reports later.
@@ -174,7 +172,8 @@ final class LoginWindow: NSObject, NSWindowDelegate, WKNavigationDelegate {
         } else if raw.contains(".") && !raw.contains(" ") {
             normalized = "https://" + raw
         } else {
-            normalized = "https://www.google.com/search?q="
+            normalized =
+                "https://www.google.com/search?q="
                 + (raw.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? raw)
         }
         guard let url = URL(string: normalized) else { return }
