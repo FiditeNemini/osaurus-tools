@@ -50,37 +50,27 @@ final class HelpersTests: XCTestCase {
         XCTAssertEqual(unwrapDDG("https://example.com/"), "https://example.com/")
     }
 
-    // MARK: providerCascade
+    // MARK: provider tables
 
-    func test_providerCascade_explicitProviderWins() {
-        let order = providerCascade(secrets: [:], requested: "tavily", vertical: .web)
-        XCTAssertEqual(order, ["tavily"])
+    func test_paidProviderPriority_matchesDocumentedOrder() {
+        // The order doubles as the auto-cascade priority — Tavily's snippets are best
+        // for agents, Brave/Serper next, you/Kagi last. Don't reshuffle without
+        // updating the SKILL too.
+        XCTAssertEqual(
+            paidProviderPriority,
+            ["tavily", "brave_api", "serper", "google_cse", "kagi", "you"]
+        )
     }
 
-    func test_providerCascade_explicitProviderIsLowercased() {
-        let order = providerCascade(secrets: [:], requested: "TAVILY", vertical: .web)
-        XCTAssertEqual(order, ["tavily"])
+    func test_freeProviderIds_areTheThreeScrapers() {
+        XCTAssertEqual(freeProviderIds, ["ddg", "brave_html", "bing_html"])
     }
 
-    func test_providerCascade_emptySecretsFallsBackToFreeScraping() {
-        let order = providerCascade(secrets: [:], requested: nil, vertical: .web)
-        XCTAssertEqual(order, ["ddg", "brave_html", "bing_html"])
-    }
-
-    func test_providerCascade_promotesConfiguredAPIBackends() {
-        let secrets = ["TAVILY_API_KEY": "k1", "BRAVE_SEARCH_API_KEY": "k2"]
-        let order = providerCascade(secrets: secrets, requested: nil, vertical: .web)
-        // Tavily should come first (highest priority), then Brave API,
-        // then the free fallbacks.
-        XCTAssertEqual(order.prefix(2).map { $0 }, ["tavily", "brave_api"])
-        XCTAssertEqual(order.suffix(3), ["ddg", "brave_html", "bing_html"])
-    }
-
-    func test_providerCascade_googleCSERequiresBothKeys() {
-        let onlyKey = ["GOOGLE_CSE_API_KEY": "k"]
-        XCTAssertFalse(providerCascade(secrets: onlyKey, requested: nil, vertical: .web).contains("google_cse"))
-        let both = ["GOOGLE_CSE_API_KEY": "k", "GOOGLE_CSE_CX": "cx"]
-        XCTAssertTrue(providerCascade(secrets: both, requested: nil, vertical: .web).contains("google_cse"))
+    func test_validProviderIds_isUnionOfFreeAndPaid() {
+        XCTAssertEqual(
+            validProviderIds,
+            Set(freeProviderIds + paidProviderPriority)
+        )
     }
 
     // MARK: augmentedQuery
@@ -126,6 +116,102 @@ final class HelpersTests: XCTestCase {
     func test_mapCSETime_usesShortCodes() {
         XCTAssertEqual(mapCSETime("d"), "d1")
         XCTAssertEqual(mapCSETime("y"), "y1")
+    }
+
+    // MARK: sanitizeProvider
+
+    func test_sanitizeProvider_passesThroughKnownIDs() {
+        var warnings: [String] = []
+        XCTAssertEqual(sanitizeProvider("tavily", warnings: &warnings), "tavily")
+        XCTAssertEqual(sanitizeProvider("brave_html", warnings: &warnings), "brave_html")
+        XCTAssertTrue(warnings.isEmpty)
+    }
+
+    func test_sanitizeProvider_lowercasesKnownIDs() {
+        var warnings: [String] = []
+        XCTAssertEqual(sanitizeProvider("TAVILY", warnings: &warnings), "tavily")
+        XCTAssertTrue(warnings.isEmpty)
+    }
+
+    func test_sanitizeProvider_dropsAutoSentinelWithWarning() {
+        // The single most common agent failure mode in the wild: agent sends
+        // `provider: "auto"` thinking that's how to opt in to the cascade.
+        // Should be silently treated as nil + a warning, not an error.
+        var warnings: [String] = []
+        XCTAssertNil(sanitizeProvider("auto", warnings: &warnings))
+        XCTAssertEqual(warnings.count, 1)
+        XCTAssertTrue(warnings[0].contains("auto"))
+    }
+
+    func test_sanitizeProvider_dropsBingShorthandWithWarning() {
+        var warnings: [String] = []
+        XCTAssertNil(sanitizeProvider("bing", warnings: &warnings))
+        XCTAssertEqual(warnings.count, 1)
+        XCTAssertTrue(warnings[0].lowercased().contains("bing"))
+    }
+
+    func test_sanitizeProvider_nilAndEmptyAreNotWarnings() {
+        var warnings: [String] = []
+        XCTAssertNil(sanitizeProvider(nil, warnings: &warnings))
+        XCTAssertNil(sanitizeProvider("", warnings: &warnings))
+        XCTAssertTrue(warnings.isEmpty)
+    }
+
+    // MARK: sanitizeRegion
+
+    func test_sanitizeRegion_acceptsXxYy() {
+        var warnings: [String] = []
+        XCTAssertEqual(sanitizeRegion("us-en", warnings: &warnings), "us-en")
+        XCTAssertEqual(sanitizeRegion("DE-DE", warnings: &warnings), "de-de")
+        XCTAssertTrue(warnings.isEmpty)
+    }
+
+    func test_sanitizeRegion_rejectsTwoLetterShorthand() {
+        var warnings: [String] = []
+        XCTAssertNil(sanitizeRegion("us", warnings: &warnings))
+        XCTAssertEqual(warnings.count, 1)
+    }
+
+    // MARK: providerHasSecrets
+
+    func test_providerHasSecrets_googleCSERequiresBoth() {
+        XCTAssertFalse(providerHasSecrets("google_cse", secrets: ["GOOGLE_CSE_API_KEY": "k"]))
+        XCTAssertTrue(
+            providerHasSecrets("google_cse", secrets: ["GOOGLE_CSE_API_KEY": "k", "GOOGLE_CSE_CX": "cx"])
+        )
+    }
+
+    // MARK: runWebOrNews — NO_RESULTS envelope
+
+    func test_runWebOrNews_pinnedPaidWithoutKeyThrowsNoResults() {
+        // Pinning Tavily without TAVILY_API_KEY fails synchronously inside the backend
+        // (no network) and the cascade has nowhere else to go because the user explicitly
+        // pinned a single provider. The new envelope must surface this as ok:false NO_RESULTS
+        // — the old behavior of ok:true count:0 was the root cause of agents thinking the
+        // search "succeeded".
+        let params = SearchParams(
+            query: "anything",
+            max_results: 5,
+            offset: 0,
+            site: nil, filetype: nil, time_range: nil, region: nil,
+            provider: "tavily",
+            secrets: [:],
+            vertical: .web
+        )
+        XCTAssertThrowsError(try runWebOrNews(params)) { err in
+            guard let toolErr = err as? ToolError else {
+                XCTFail("Expected ToolError, got \(err)")
+                return
+            }
+            XCTAssertEqual(toolErr.code, "NO_RESULTS")
+            // The error envelope must carry the attempts log so the agent / user can see
+            // *why* the search returned nothing.
+            let attempts = toolErr.data?["attempts"] as? [[String: Any]]
+            XCTAssertNotNil(attempts)
+            XCTAssertEqual(attempts?.count, 1)
+            XCTAssertEqual(attempts?[0]["provider"] as? String, "tavily")
+            XCTAssertEqual(attempts?[0]["ok"] as? Bool, false)
+        }
     }
 
     // MARK: helpers

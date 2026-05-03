@@ -10,10 +10,17 @@ private func okResponse(_ data: [String: Any], warnings: [String] = []) -> Strin
 }
 
 @inline(__always)
-private func errorResponse(code: String, message: String, hint: String? = nil) -> String {
+private func errorResponse(
+    code: String,
+    message: String,
+    hint: String? = nil,
+    data: [String: Any]? = nil
+) -> String {
     var error: [String: Any] = ["code": code, "message": message]
     if let hint = hint { error["hint"] = hint }
-    return jsonString(["ok": false, "error": error])
+    var payload: [String: Any] = ["ok": false, "error": error]
+    if let data = data { payload["data"] = data }
+    return jsonString(payload)
 }
 
 private func jsonString(_ obj: Any) -> String {
@@ -29,14 +36,27 @@ private func jsonString(_ obj: Any) -> String {
     return str
 }
 
-private struct ToolError: Error {
+struct ToolError: Error {
     let code: String
     let message: String
     let hint: String?
-    init(code: String, message: String, hint: String? = nil) {
+    let data: [String: Any]?
+    init(code: String, message: String, hint: String? = nil, data: [String: Any]? = nil) {
         self.code = code
         self.message = message
         self.hint = hint
+        self.data = data
+    }
+}
+
+/// What every tool's `run` returns: the data payload plus any non-fatal warnings
+/// (e.g. "ignored unknown provider 'auto'") that should ride along on success.
+struct ToolOutcome {
+    var data: [String: Any]
+    var warnings: [String]
+    init(_ data: [String: Any], warnings: [String] = []) {
+        self.data = data
+        self.warnings = warnings
     }
 }
 
@@ -74,7 +94,7 @@ private func httpRequest(
     method: String = "GET",
     headers: [String: String] = [:],
     body: Data? = nil,
-    timeout: TimeInterval = 25
+    timeout: TimeInterval = 8
 ) -> (status: Int, data: Data?, error: String?) {
     guard let u = URL(string: url) else { return (0, nil, "Invalid URL: \(url)") }
     var req = URLRequest(url: u, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: timeout)
@@ -99,7 +119,11 @@ private func httpRequest(
         semaphore.signal()
     }
     task.resume()
-    _ = semaphore.wait(timeout: .now() + timeout + 5)
+    if semaphore.wait(timeout: .now() + timeout + 2) == .timedOut {
+        // URLSession callback may still fire later, but cancelling lets the system free the socket.
+        task.cancel()
+        return (0, nil, error ?? "request timed out after \(Int(timeout))s")
+    }
     return (status, data, error)
 }
 
@@ -241,23 +265,6 @@ struct SearchParams {
     let vertical: Vertical
 }
 
-func providerCascade(secrets: [String: String], requested: String?, vertical: Vertical) -> [String] {
-    if let r = requested?.lowercased() { return [r] }
-    var order: [String] = []
-    if secrets["TAVILY_API_KEY"] != nil { order.append("tavily") }
-    if secrets["BRAVE_SEARCH_API_KEY"] != nil { order.append("brave_api") }
-    if secrets["SERPER_API_KEY"] != nil { order.append("serper") }
-    if secrets["GOOGLE_CSE_API_KEY"] != nil && secrets["GOOGLE_CSE_CX"] != nil { order.append("google_cse") }
-    if secrets["KAGI_API_KEY"] != nil { order.append("kagi") }
-    if secrets["YOU_API_KEY"] != nil { order.append("you") }
-    // Free fallbacks
-    order.append(contentsOf: ["ddg", "brave_html", "bing_html"])
-    if vertical == .news {
-        // No image-specific extras here.
-    }
-    return order
-}
-
 func augmentedQuery(_ p: SearchParams) -> String {
     var q = p.query
     if let site = p.site, !site.isEmpty { q += " site:\(site)" }
@@ -301,7 +308,8 @@ private func tavilySearch(_ p: SearchParams) -> Result<[SearchHit], BackendError
         url: "https://api.tavily.com/search",
         method: "POST",
         headers: ["Content-Type": "application/json"],
-        body: bodyData
+        body: bodyData,
+        timeout: 15
     )
     if let err = res.error { return .failure(BackendError("Tavily: \(err)")) }
     guard res.status == 200, let data = res.data,
@@ -345,7 +353,8 @@ private func braveAPISearch(_ p: SearchParams) -> Result<[SearchHit], BackendErr
     url += "?" + qs
     let res = httpRequest(
         url: url,
-        headers: ["X-Subscription-Token": key, "Accept": "application/json"]
+        headers: ["X-Subscription-Token": key, "Accept": "application/json"],
+        timeout: 15
     )
     if let err = res.error { return .failure(BackendError("Brave API: \(err)")) }
     guard res.status == 200, let data = res.data,
@@ -400,7 +409,8 @@ private func serperSearch(_ p: SearchParams) -> Result<[SearchHit], BackendError
         url: endpoint,
         method: "POST",
         headers: ["Content-Type": "application/json", "X-API-KEY": key],
-        body: bodyData
+        body: bodyData,
+        timeout: 15
     )
     if let err = res.error { return .failure(BackendError("Serper: \(err)")) }
     guard res.status == 200, let data = res.data,
@@ -441,7 +451,7 @@ private func googleCSESearch(_ p: SearchParams) -> Result<[SearchHit], BackendEr
     url += "&q=\(urlEncode(augmentedQuery(p)))&num=\(min(p.max_results, 10))&start=\(start)"
     if let tr = mapCSETime(p.time_range) { url += "&dateRestrict=\(tr)" }
     if p.vertical == .news { url += "&searchType=&tbm=nws" }
-    let res = httpRequest(url: url, headers: ["Accept": "application/json"])
+    let res = httpRequest(url: url, headers: ["Accept": "application/json"], timeout: 15)
     if let err = res.error { return .failure(BackendError("Google CSE: \(err)")) }
     guard res.status == 200, let data = res.data,
         let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -475,7 +485,7 @@ private func kagiSearch(_ p: SearchParams) -> Result<[SearchHit], BackendError> 
     guard let key = p.secrets["KAGI_API_KEY"] else { return .failure(BackendError("KAGI_API_KEY not configured")) }
     var url = "https://kagi.com/api/v0/search?q=\(urlEncode(augmentedQuery(p)))&limit=\(p.max_results)"
     if p.offset > 0 { url += "&offset=\(p.offset)" }
-    let res = httpRequest(url: url, headers: ["Authorization": "Bot \(key)"])
+    let res = httpRequest(url: url, headers: ["Authorization": "Bot \(key)"], timeout: 15)
     if let err = res.error { return .failure(BackendError("Kagi: \(err)")) }
     guard res.status == 200, let data = res.data,
         let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -505,7 +515,7 @@ private func youSearch(_ p: SearchParams) -> Result<[SearchHit], BackendError> {
         : "https://api.ydc-index.io/search"
     var url = "\(endpoint)?query=\(urlEncode(augmentedQuery(p)))&num_web_results=\(p.max_results)"
     if let tr = mapYouTime(p.time_range) { url += "&recency=\(tr)" }
-    let res = httpRequest(url: url, headers: ["X-API-Key": key, "Accept": "application/json"])
+    let res = httpRequest(url: url, headers: ["X-API-Key": key, "Accept": "application/json"], timeout: 15)
     if let err = res.error { return .failure(BackendError("You.com: \(err)")) }
     guard res.status == 200, let data = res.data,
         let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
@@ -622,10 +632,79 @@ private func braveScrape(_ p: SearchParams) -> Result<[SearchHit], BackendError>
     guard let data = res.data, let html = String(data: data, encoding: .utf8) else {
         return .failure(BackendError("Brave HTML: empty response"))
     }
+    if isLikelyChallengePage(html) {
+        return .failure(BackendError("Brave HTML: challenge_page"))
+    }
     return .success(parseBraveHTML(html, max: p.max_results))
 }
 
+/// Detects anti-bot interstitials and other useless responses (e.g. very small bodies that
+/// only contain a captcha shell). Cheap pre-filter before regex parsing.
+func isLikelyChallengePage(_ html: String) -> Bool {
+    if html.count < 2048 { return true }
+    let lc = html.lowercased()
+    if lc.contains("captcha") || lc.contains("just a moment") || lc.contains("checking your browser") {
+        return true
+    }
+    return false
+}
+
+/// Brave's modern (2026) markup wraps each result in `<div class="snippet ...">` with the
+/// title link as `<a class="title ...">` and the snippet text as `<div class="description ...">`.
+/// Ads come through the same wrapper but with `data-type="ad"` and `/a/redirect` hrefs;
+/// we filter them out so they don't pollute organic results.
+///
+/// Sub-result ("deep link") shape:
+///   <div class="snippet ...">
+///     <a class="title ..." href="https://...">Title</a>
+///     <div class="description ...">Snippet</div>
+///   </div>
+///
+/// Main organic shape (with thumbnail / favicon scaffolding):
+///   <div class="snippet ..." data-type="web" ...>
+///     <div class="result-wrapper ...">
+///       <a class="...l1" href="https://..."> ... favicon, site-name ... </a>
+///       <a class="title search-snippet-title ..." href="https://...">Title</a>
+///       <div class="description ...">Snippet</div>
+///     </div>
+///   </div>
 func parseBraveHTML(_ html: String, max: Int) -> [SearchHit] {
+    let chunks = sliceByClass(html, className: "snippet")
+    if chunks.isEmpty { return parseBraveHTMLLegacy(html, max: max) }
+
+    var hits: [SearchHit] = []
+    for chunk in chunks {
+        // Skip ad blocks: Brave routes ad URLs through `/a/redirect?...` and tags the wrapper.
+        if chunk.contains("data-type=\"ad\"") || chunk.contains("/a/redirect?") {
+            continue
+        }
+        // URL: prefer the title anchor's href; fall back to the headline (.l1) anchor;
+        // last resort, any http(s) link inside the chunk.
+        var url = firstAttr(in: chunk, tag: "a", className: "title", attr: "href")
+        if url == nil { url = firstAttr(in: chunk, tag: "a", className: "l1", attr: "href") }
+        if url == nil { url = firstHrefStartingWithHttp(in: chunk) }
+        guard let rawURL = url, rawURL.hasPrefix("http") else { continue }
+
+        let title = firstInnerByClass(in: chunk, className: "title") ?? ""
+        let snippet = firstInnerByClass(in: chunk, className: "description") ?? ""
+        let cleanedTitle = stripHTML(title)
+        if cleanedTitle.isEmpty { continue }
+
+        hits.append(
+            SearchHit(
+                title: cleanedTitle,
+                url: decodeHTMLEntities(rawURL),
+                snippet: stripHTML(snippet),
+                engine: "brave_html"
+            )
+        )
+        if hits.count >= max { break }
+    }
+    return hits
+}
+
+/// Fallback to the older selectors in case Brave switches markup back. Kept narrow on purpose.
+private func parseBraveHTMLLegacy(_ html: String, max: Int) -> [SearchHit] {
     var hits: [SearchHit] = []
     let pattern =
         "<div[^>]*class=\"[^\"]*snippet[^\"]*\"[^>]*>[\\s\\S]*?<a[^>]*href=\"([^\"]+)\"[^>]*>[\\s\\S]*?<div[^>]*class=\"[^\"]*title[^\"]*\"[^>]*>([\\s\\S]*?)</div>[\\s\\S]*?<div[^>]*class=\"[^\"]*snippet-description[^\"]*\"[^>]*>([\\s\\S]*?)</div>"
@@ -648,6 +727,71 @@ func parseBraveHTML(_ html: String, max: Int) -> [SearchHit] {
         }
     }
     return hits
+}
+
+// MARK: - Generic class-based HTML helpers (used by Brave parser)
+
+/// Slice HTML on the *opening* tag of any element whose class list contains `className`
+/// as a whitespace-delimited token (CSS-class semantics, so `"snippet"` matches
+/// `class="snippet svelte-abc"` but NOT `class="snippet-description"`).
+/// Each returned chunk runs from one such opening tag up to (but not including) the next one,
+/// which is good enough for shallow search-result blocks.
+func sliceByClass(_ html: String, className: String) -> [String] {
+    let pattern = "<[a-zA-Z][a-zA-Z0-9]*\\s[^>]*class=\"([^\"]*)\""
+    guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { return [] }
+    let nsr = NSRange(html.startIndex..., in: html)
+    let matches = regex.matches(in: html, range: nsr)
+    if matches.isEmpty { return [] }
+
+    let nsHtml = html as NSString
+    var validStarts: [Int] = []
+    for m in matches {
+        let classAttrRange = m.range(at: 1)
+        if classAttrRange.location == NSNotFound { continue }
+        let classes = nsHtml.substring(with: classAttrRange)
+            .split(whereSeparator: { $0.isWhitespace })
+        if classes.contains(where: { $0 == Substring(className) }) {
+            validStarts.append(m.range.location)
+        }
+    }
+    if validStarts.isEmpty { return [] }
+    var chunks: [String] = []
+    for (i, start) in validStarts.enumerated() {
+        let end = i + 1 < validStarts.count ? validStarts[i + 1] : nsHtml.length
+        let len = end - start
+        if len <= 0 { continue }
+        chunks.append(nsHtml.substring(with: NSRange(location: start, length: len)))
+    }
+    return chunks
+}
+
+/// Returns the first `attr` value of a `tag` whose class list contains `className`.
+func firstAttr(in html: String, tag: String, className: String, attr: String) -> String? {
+    let cls = NSRegularExpression.escapedPattern(for: className)
+    let attrEsc = NSRegularExpression.escapedPattern(for: attr)
+    // Match either order: class=...href=... or href=...class=...
+    let order1 =
+        "<\(tag)\\b[^>]*class=\"[^\"]*\\b\(cls)\\b[^\"]*\"[^>]*\\b\(attrEsc)=\"([^\"]+)\""
+    let order2 =
+        "<\(tag)\\b[^>]*\\b\(attrEsc)=\"([^\"]+)\"[^>]*class=\"[^\"]*\\b\(cls)\\b"
+    for pattern in [order1, order2] {
+        if let v = firstGroup(in: html, pattern: pattern) { return v }
+    }
+    return nil
+}
+
+/// Returns the inner-HTML of the first element whose class list contains `className`.
+/// Tag-agnostic; handles `<div>`, `<span>`, etc.
+func firstInnerByClass(in html: String, className: String) -> String? {
+    let cls = NSRegularExpression.escapedPattern(for: className)
+    let pattern =
+        "<([a-zA-Z][a-zA-Z0-9]*)\\b[^>]*class=\"[^\"]*\\b\(cls)\\b[^\"]*\"[^>]*>([\\s\\S]*?)</\\1>"
+    return firstGroup(in: html, pattern: pattern, group: 2)
+}
+
+/// First http/https `href` value found anywhere in `html`.
+func firstHrefStartingWithHttp(in html: String) -> String? {
+    return firstGroup(in: html, pattern: "href=\"(https?://[^\"]+)\"")
 }
 
 private func bingScrape(_ p: SearchParams) -> Result<[SearchHit], BackendError> {
@@ -732,35 +876,180 @@ private func runImageSearch(_ params: SearchParams) -> Result<[ImageHit], Backen
 
 // MARK: - Cascade + dedupe
 
-private func runWebOrNews(_ params: SearchParams) -> [String: Any] {
-    let order = providerCascade(secrets: params.secrets, requested: params.provider, vertical: params.vertical)
+/// Backends that go over the network for free (no API key). Raced in parallel with a wall-clock budget.
+let freeProviderIds: [String] = ["ddg", "brave_html", "bing_html"]
+
+/// Paid backends, in descending priority order. Tried sequentially because each call costs quota.
+let paidProviderPriority: [String] = ["tavily", "brave_api", "serper", "google_cse", "kagi", "you"]
+
+let validProviderIds: Set<String> = Set(freeProviderIds + paidProviderPriority)
+
+func providerHasSecrets(_ id: String, secrets: [String: String]) -> Bool {
+    switch id {
+    case "tavily": return secrets["TAVILY_API_KEY"] != nil
+    case "brave_api": return secrets["BRAVE_SEARCH_API_KEY"] != nil
+    case "serper": return secrets["SERPER_API_KEY"] != nil
+    case "google_cse": return secrets["GOOGLE_CSE_API_KEY"] != nil && secrets["GOOGLE_CSE_CX"] != nil
+    case "kagi": return secrets["KAGI_API_KEY"] != nil
+    case "you": return secrets["YOU_API_KEY"] != nil
+    default: return false
+    }
+}
+
+/// Drops invalid `provider` and `region` values into nil, recording a warning instead of erroring.
+/// Agents routinely invent values like `"auto"` or `"bing"`; better to silently fall back to
+/// auto-cascade than to fail the whole search.
+func sanitizeProvider(_ raw: String?, warnings: inout [String]) -> String? {
+    guard let raw = raw, !raw.isEmpty else { return nil }
+    let lc = raw.lowercased()
+    if validProviderIds.contains(lc) { return lc }
+    let valid = validProviderIds.sorted().joined(separator: ", ")
+    warnings.append("Ignored unknown provider '\(raw)'; used auto-cascade. Valid: \(valid).")
+    return nil
+}
+
+func sanitizeRegion(_ raw: String?, warnings: inout [String]) -> String? {
+    guard let raw = raw, !raw.isEmpty else { return nil }
+    if raw.range(of: "^[A-Za-z]{2}-[A-Za-z]{2}$", options: .regularExpression) != nil {
+        return raw.lowercased()
+    }
+    warnings.append("Ignored invalid region '\(raw)'; expected format 'xx-yy' (e.g. 'us-en').")
+    return nil
+}
+
+/// Race the free scrapers in parallel under a wall-clock budget.
+/// Early-exits as soon as any provider returns >= 3 hits to keep p50 latency low.
+private func runFreeCascadeParallel(
+    _ params: SearchParams,
+    budgetSeconds: TimeInterval
+) -> (hits: [SearchHit], attempts: [[String: Any]], usedProvider: String?) {
+    let queue = OperationQueue()
+    queue.qualityOfService = .userInitiated
+    queue.maxConcurrentOperationCount = freeProviderIds.count
+
+    let lock = NSLock()
+    var done: [(String, Result<[SearchHit], BackendError>)] = []
+    let signal = DispatchSemaphore(value: 0)
+    var earlyExitFired = false
+
+    let providers = freeProviderIds
+    for provider in providers {
+        queue.addOperation {
+            let r = runBackend(provider, params: params)
+            lock.lock()
+            done.append((provider, r))
+            var shouldSignal = false
+            if case .success(let h) = r, h.count >= 3, !earlyExitFired {
+                earlyExitFired = true
+                shouldSignal = true
+            } else if done.count == providers.count {
+                shouldSignal = true
+            }
+            lock.unlock()
+            if shouldSignal { signal.signal() }
+        }
+    }
+
+    _ = signal.wait(timeout: .now() + .milliseconds(Int(budgetSeconds * 1000)))
+
+    lock.lock()
+    let snapshot = done
+    lock.unlock()
+
     var attempts: [[String: Any]] = []
     var hits: [SearchHit] = []
-    var usedProvider: String?
+    var seen = Set<String>()
+    var bestProvider: String?
 
-    for provider in order {
-        let result = runBackend(provider, params: params)
+    let completed = Set(snapshot.map { $0.0 })
+    for p in providers where !completed.contains(p) {
+        attempts.append(["provider": p, "ok": false, "error": "timeout"])
+    }
+    for (provider, result) in snapshot {
         switch result {
         case .success(let h):
             attempts.append(["provider": provider, "ok": true, "count": h.count])
-            if !h.isEmpty {
-                hits = h
-                usedProvider = provider
-                break  // breaks out of switch only
+            for hit in h {
+                let key = hit.url.lowercased()
+                if key.isEmpty || seen.contains(key) { continue }
+                seen.insert(key)
+                hits.append(hit)
+                if bestProvider == nil { bestProvider = provider }
             }
         case .failure(let err):
             attempts.append(["provider": provider, "ok": false, "error": err.message])
         }
-        if !hits.isEmpty { break }
+    }
+    return (hits, attempts, bestProvider)
+}
+
+func runWebOrNews(_ params: SearchParams) throws -> [String: Any] {
+    var attempts: [[String: Any]] = []
+    var deduped: [SearchHit] = []
+    var seen = Set<String>()
+    var usedProvider: String?
+
+    func ingest(_ hits: [SearchHit]) {
+        for h in hits {
+            let key = h.url.lowercased()
+            if key.isEmpty || seen.contains(key) { continue }
+            seen.insert(key)
+            deduped.append(h)
+        }
     }
 
-    var seen = Set<String>()
-    var deduped: [SearchHit] = []
-    for h in hits {
-        let key = h.url.lowercased()
-        if key.isEmpty || seen.contains(key) { continue }
-        seen.insert(key)
-        deduped.append(h)
+    if let pinned = params.provider {
+        // Single-provider mode. Caller already validated it against `validProviderIds`.
+        let result = runBackend(pinned, params: params)
+        switch result {
+        case .success(let h):
+            attempts.append(["provider": pinned, "ok": true, "count": h.count])
+            if !h.isEmpty {
+                ingest(h)
+                usedProvider = pinned
+            }
+        case .failure(let err):
+            attempts.append(["provider": pinned, "ok": false, "error": err.message])
+        }
+    } else {
+        // Auto-cascade: paid (one at a time, in priority order) → free (in parallel).
+        for provider in paidProviderPriority where providerHasSecrets(provider, secrets: params.secrets) {
+            let result = runBackend(provider, params: params)
+            switch result {
+            case .success(let h):
+                attempts.append(["provider": provider, "ok": true, "count": h.count])
+                if !h.isEmpty {
+                    ingest(h)
+                    usedProvider = provider
+                }
+            case .failure(let err):
+                attempts.append(["provider": provider, "ok": false, "error": err.message])
+            }
+            if !deduped.isEmpty { break }
+        }
+        if deduped.isEmpty {
+            let parallel = runFreeCascadeParallel(params, budgetSeconds: 12)
+            attempts.append(contentsOf: parallel.attempts)
+            ingest(parallel.hits)
+            if usedProvider == nil { usedProvider = parallel.usedProvider }
+        }
+    }
+
+    if deduped.isEmpty {
+        let payload: [String: Any] = [
+            "query": params.query,
+            "provider": "",
+            "results": [],
+            "count": 0,
+            "attempts": attempts,
+        ]
+        throw ToolError(
+            code: "NO_RESULTS",
+            message: "No results from any backend.",
+            hint:
+                "Try a broader query, drop site:/filetype:/time_range, or configure a paid API key (e.g. TAVILY_API_KEY) in plugin settings.",
+            data: payload
+        )
     }
 
     var out: [String: Any] = [
@@ -808,58 +1097,79 @@ struct ImageArgs: Decodable {
 
 // MARK: - Tools
 
+/// Runs `runWebOrNews` while attaching `warnings` to a NO_RESULTS error envelope so
+/// the agent can see why we returned nothing (e.g. "ignored unknown provider").
+private func runWebOrNewsAttachingWarnings(_ params: SearchParams, warnings: [String]) throws -> [String: Any] {
+    do {
+        return try runWebOrNews(params)
+    } catch let err as ToolError where err.code == "NO_RESULTS" {
+        var data = err.data ?? [:]
+        if !warnings.isEmpty { data["warnings"] = warnings }
+        throw ToolError(code: err.code, message: err.message, hint: err.hint, data: data)
+    }
+}
+
+/// Builds `SearchParams` from a decoded `WebArgs`, sanitizing user-supplied `provider`
+/// and `region` and applying caller-specific defaults (e.g. news defaults `time_range="w"`).
+/// Throws `INVALID_ARGS` when the query is empty so each tool doesn't have to repeat the check.
+private func buildWebSearchParams(
+    from args: WebArgs,
+    rawPayload: String,
+    vertical: Vertical,
+    defaultTimeRange: String? = nil
+) throws -> (params: SearchParams, warnings: [String]) {
+    guard !args.query.isEmpty else {
+        throw ToolError(code: "INVALID_ARGS", message: "Required: 'query' (string).")
+    }
+    var warnings: [String] = []
+    let provider = sanitizeProvider(args.provider, warnings: &warnings)
+    let region = sanitizeRegion(args.region, warnings: &warnings)
+    let params = SearchParams(
+        query: args.query,
+        max_results: max(1, min(args.max_results ?? 10, 50)),
+        offset: max(0, args.offset ?? 0),
+        site: args.site,
+        filetype: args.filetype,
+        time_range: args.time_range ?? defaultTimeRange,
+        region: region,
+        provider: provider,
+        secrets: extractSecrets(rawPayload),
+        vertical: vertical
+    )
+    return (params, warnings)
+}
+
 private struct SearchTool {
     static let name = "search"
 
-    func run(args: String) throws -> [String: Any] {
+    func run(args: String) throws -> ToolOutcome {
         let parsed: WebArgs = try decodeArgs(args)
-        guard !parsed.query.isEmpty else {
-            throw ToolError(code: "INVALID_ARGS", message: "Required: 'query' (string).")
-        }
-        let params = SearchParams(
-            query: parsed.query,
-            max_results: max(1, min(parsed.max_results ?? 10, 50)),
-            offset: max(0, parsed.offset ?? 0),
-            site: parsed.site,
-            filetype: parsed.filetype,
-            time_range: parsed.time_range,
-            region: parsed.region,
-            provider: parsed.provider,
-            secrets: extractSecrets(args),
-            vertical: .web
-        )
-        return runWebOrNews(params)
+        let (params, warnings) = try buildWebSearchParams(from: parsed, rawPayload: args, vertical: .web)
+        let data = try runWebOrNewsAttachingWarnings(params, warnings: warnings)
+        return ToolOutcome(data, warnings: warnings)
     }
 }
 
 private struct SearchNewsTool {
     static let name = "search_news"
 
-    func run(args: String) throws -> [String: Any] {
+    func run(args: String) throws -> ToolOutcome {
         let parsed: WebArgs = try decodeArgs(args)
-        guard !parsed.query.isEmpty else {
-            throw ToolError(code: "INVALID_ARGS", message: "Required: 'query' (string).")
-        }
-        let params = SearchParams(
-            query: parsed.query,
-            max_results: max(1, min(parsed.max_results ?? 10, 50)),
-            offset: max(0, parsed.offset ?? 0),
-            site: parsed.site,
-            filetype: parsed.filetype,
-            time_range: parsed.time_range ?? "w",
-            region: parsed.region,
-            provider: parsed.provider,
-            secrets: extractSecrets(args),
-            vertical: .news
+        let (params, warnings) = try buildWebSearchParams(
+            from: parsed,
+            rawPayload: args,
+            vertical: .news,
+            defaultTimeRange: "w"
         )
-        return runWebOrNews(params)
+        let data = try runWebOrNewsAttachingWarnings(params, warnings: warnings)
+        return ToolOutcome(data, warnings: warnings)
     }
 }
 
 private struct SearchImagesTool {
     static let name = "search_images"
 
-    func run(args: String) throws -> [String: Any] {
+    func run(args: String) throws -> ToolOutcome {
         let parsed: ImageArgs = try decodeArgs(args)
         guard !parsed.query.isEmpty else {
             throw ToolError(code: "INVALID_ARGS", message: "Required: 'query' (string).")
@@ -874,12 +1184,13 @@ private struct SearchImagesTool {
         )
         switch runImageSearch(params) {
         case .success(let imgs):
-            return [
+            let data: [String: Any] = [
                 "query": parsed.query,
                 "provider": "ddg",
                 "results": imgs.enumerated().map { $0.element.toDict(rank: $0.offset + 1) },
                 "count": imgs.count,
             ]
+            return ToolOutcome(data)
         case .failure(let err):
             throw ToolError(
                 code: "PROVIDER_UNAVAILABLE",
@@ -893,7 +1204,7 @@ private struct SearchImagesTool {
 private struct SearchAndExtractTool {
     static let name = "search_and_extract"
 
-    func run(args: String) throws -> [String: Any] {
+    func run(args: String) throws -> ToolOutcome {
         struct Args: Decodable {
             let query: String
             let max_results: Int?
@@ -911,6 +1222,9 @@ private struct SearchAndExtractTool {
         let maxResults = max(1, min(parsed.max_results ?? 5, 20))
         let extractCount = max(1, min(parsed.extract_count ?? 3, maxResults))
 
+        var warnings: [String] = []
+        let provider = sanitizeProvider(parsed.provider, warnings: &warnings)
+
         let webParams = SearchParams(
             query: parsed.query,
             max_results: maxResults,
@@ -919,13 +1233,13 @@ private struct SearchAndExtractTool {
             filetype: parsed.filetype,
             time_range: parsed.time_range,
             region: nil,
-            provider: parsed.provider,
+            provider: provider,
             secrets: extractSecrets(args),
             vertical: .web
         )
-        let webOut = runWebOrNews(webParams)
+        let webOut = try runWebOrNewsAttachingWarnings(webParams, warnings: warnings)
         guard let results = webOut["results"] as? [[String: Any]] else {
-            return webOut
+            return ToolOutcome(webOut, warnings: warnings)
         }
 
         var enriched: [[String: Any]] = []
@@ -951,7 +1265,7 @@ private struct SearchAndExtractTool {
 
         var out = webOut
         out["results"] = enriched
-        return out
+        return ToolOutcome(out, warnings: warnings)
     }
 }
 
@@ -992,10 +1306,11 @@ private func extractReadability(url: String, timeout: TimeInterval) -> [String: 
     return d
 }
 
-func firstGroup(in s: String, pattern: String) -> String? {
+func firstGroup(in s: String, pattern: String, group: Int = 1) -> String? {
     guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
         let match = regex.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
-        let range = Range(match.range(at: 1), in: s)
+        match.numberOfRanges > group,
+        let range = Range(match.range(at: group), in: s)
     else { return nil }
     return String(s[range])
 }
@@ -1142,7 +1457,7 @@ private var api: osr_plugin_api = {
             {
               "plugin_id": "osaurus.search",
               "name": "Search",
-              "description": "Web search via pluggable backends. Free DDG/Brave/Bing scraping by default; optional Tavily / Brave Search API / Serper / Google CSE / Kagi / You.com when API keys are configured.",
+              "description": "Web search for grounding. Just call search(query=...). Auto-picks the best available backend and returns deduplicated results.",
               "license": "MIT",
               "authors": ["Osaurus Team"],
               "min_macos": "13.0",
@@ -1160,15 +1475,15 @@ private var api: osr_plugin_api = {
                 "tools": [
                   {
                     "id": "search",
-                    "description": "Web search. Auto-picks the best configured backend (Tavily > Brave API > Serper > Google CSE > Kagi > You.com), falling back to free DDG/Brave/Bing scraping when no API key is present. Returns deduplicated results with title, url, snippet, optional published_date and source_domain.",
-                    "parameters": {"type":"object","properties":{"query":{"type":"string","description":"Search query."},"max_results":{"type":"integer","description":"1-50. Default 10."},"offset":{"type":"integer","description":"Pagination offset (where supported). Default 0."},"site":{"type":"string","description":"Restrict to a domain (translates to 'site:' or backend-native filter)."},"filetype":{"type":"string","description":"Restrict to a file extension (e.g. 'pdf')."},"time_range":{"type":"string","enum":["d","w","m","y"],"description":"d=day, w=week, m=month, y=year."},"region":{"type":"string","description":"DDG kl region code (e.g. 'us-en'). Default 'wt-wt'."},"provider":{"type":"string","enum":["tavily","brave_api","serper","google_cse","kagi","you","ddg","brave_html","bing_html"],"description":"Pin a specific backend instead of auto-selecting."}},"required":["query"]},
+                    "description": "Web search. Just pass `query` — the plugin auto-selects the best available backend and races free fallback scrapers in parallel. Returns deduplicated results with title, url, snippet, and (where available) published_date and source_domain.",
+                    "parameters": {"type":"object","properties":{"query":{"type":"string","description":"Plain-language search query. Don't add site:/filetype: operators here; use the dedicated params below instead."},"max_results":{"type":"integer","description":"How many results to return (1-50). Default 10."},"time_range":{"type":"string","enum":["d","w","m","y"],"description":"Recency filter: d=day, w=week, m=month, y=year. Omit for any time."},"site":{"type":"string","description":"Advanced — leave unset unless you need to restrict to one domain (e.g. 'arxiv.org')."},"filetype":{"type":"string","description":"Advanced — leave unset unless you specifically need a file type (e.g. 'pdf')."},"offset":{"type":"integer","description":"Advanced — pagination offset for fetching more pages of results. Default 0."},"region":{"type":"string","description":"Advanced — DDG region code in 'xx-yy' form (e.g. 'us-en'). Leave unset for global."},"provider":{"type":"string","enum":["tavily","brave_api","serper","google_cse","kagi","you","ddg","brave_html","bing_html"],"description":"Advanced — leave unset to let the plugin auto-select. Only pin if you explicitly need a specific backend."}},"required":["query"]},
                     "requirements": [],
                     "permission_policy": "allow"
                   },
                   {
                     "id": "search_news",
-                    "description": "News-vertical search. Default time_range='w' (last week). Same backend selection as 'search'.",
-                    "parameters": {"type":"object","properties":{"query":{"type":"string"},"max_results":{"type":"integer"},"offset":{"type":"integer"},"site":{"type":"string"},"filetype":{"type":"string"},"time_range":{"type":"string","enum":["d","w","m","y"]},"region":{"type":"string"},"provider":{"type":"string"}},"required":["query"]},
+                    "description": "News-vertical search. Just pass `query`; defaults to last week. Same backend selection as `search`.",
+                    "parameters": {"type":"object","properties":{"query":{"type":"string","description":"Plain-language query. Don't embed site:/filetype: operators."},"max_results":{"type":"integer","description":"1-50. Default 10."},"time_range":{"type":"string","enum":["d","w","m","y"],"description":"Recency filter. Default 'w' (last week)."},"site":{"type":"string","description":"Advanced — leave unset unless restricting to one outlet."},"filetype":{"type":"string","description":"Advanced — leave unset."},"offset":{"type":"integer","description":"Advanced — pagination offset. Default 0."},"region":{"type":"string","description":"Advanced — region code 'xx-yy'."},"provider":{"type":"string","enum":["tavily","brave_api","serper","google_cse","kagi","you","ddg","brave_html","bing_html"],"description":"Advanced — leave unset for auto-selection."}},"required":["query"]},
                     "requirements": [],
                     "permission_policy": "allow"
                   },
@@ -1181,8 +1496,8 @@ private var api: osr_plugin_api = {
                   },
                   {
                     "id": "search_and_extract",
-                    "description": "Run a search and Readability-extract the top N URLs in one call. Each enriched result includes 'markdown', 'title', 'byline', 'lang', 'word_count', and 'extracted'.",
-                    "parameters": {"type":"object","properties":{"query":{"type":"string"},"max_results":{"type":"integer","description":"1-20. Default 5."},"extract_count":{"type":"integer","description":"How many of the top results to extract. Default 3."},"provider":{"type":"string"},"time_range":{"type":"string","enum":["d","w","m","y"]},"site":{"type":"string"},"filetype":{"type":"string"},"timeout":{"type":"number","description":"Per-extract timeout in seconds. Default 25."}},"required":["query"]},
+                    "description": "One-shot: run a search and Readability-extract the top N URLs. Each enriched result includes 'markdown', 'title', 'byline', 'lang', 'word_count', and 'extracted'. Use this when you want a grounded answer without a separate fetch_html step.",
+                    "parameters": {"type":"object","properties":{"query":{"type":"string"},"max_results":{"type":"integer","description":"1-20. Default 5."},"extract_count":{"type":"integer","description":"How many of the top results to extract. Default 3."},"time_range":{"type":"string","enum":["d","w","m","y"],"description":"Recency filter."},"site":{"type":"string","description":"Advanced — leave unset."},"filetype":{"type":"string","description":"Advanced — leave unset."},"provider":{"type":"string","enum":["tavily","brave_api","serper","google_cse","kagi","you","ddg","brave_html","bing_html"],"description":"Advanced — leave unset."},"timeout":{"type":"number","description":"Per-extract timeout in seconds. Default 25."}},"required":["query"]},
                     "requirements": [],
                     "permission_policy": "allow"
                   }
@@ -1190,7 +1505,7 @@ private var api: osr_plugin_api = {
                 "skills": [
                   {
                     "name": "osaurus-search",
-                    "description": "Teaches the agent how to use the web search tools — DuckDuckGo / Brave / Bing scraping by default, optional API backends (Tavily, Brave Search API, Serper, Google CSE, Kagi, You.com)."
+                    "description": "Teaches the agent how to use the web search tools. Lead with `search(query=...)`; only override defaults when explicitly needed."
                   }
                 ]
               }
@@ -1222,12 +1537,12 @@ private var api: osr_plugin_api = {
 
         let result: String
         do {
-            let data: [String: Any]
+            let outcome: ToolOutcome
             switch id {
-            case SearchTool.name: data = try ctx.searchTool.run(args: payload)
-            case SearchNewsTool.name: data = try ctx.searchNewsTool.run(args: payload)
-            case SearchImagesTool.name: data = try ctx.searchImagesTool.run(args: payload)
-            case SearchAndExtractTool.name: data = try ctx.searchAndExtractTool.run(args: payload)
+            case SearchTool.name: outcome = try ctx.searchTool.run(args: payload)
+            case SearchNewsTool.name: outcome = try ctx.searchNewsTool.run(args: payload)
+            case SearchImagesTool.name: outcome = try ctx.searchImagesTool.run(args: payload)
+            case SearchAndExtractTool.name: outcome = try ctx.searchAndExtractTool.run(args: payload)
             default:
                 return makeCString(
                     errorResponse(
@@ -1237,9 +1552,9 @@ private var api: osr_plugin_api = {
                     )
                 )
             }
-            result = okResponse(data)
+            result = okResponse(outcome.data, warnings: outcome.warnings)
         } catch let err as ToolError {
-            result = errorResponse(code: err.code, message: err.message, hint: err.hint)
+            result = errorResponse(code: err.code, message: err.message, hint: err.hint, data: err.data)
         } catch {
             result = errorResponse(code: "INTERNAL", message: error.localizedDescription)
         }
