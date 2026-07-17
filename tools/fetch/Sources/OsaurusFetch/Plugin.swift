@@ -226,20 +226,28 @@ struct MultipartField: Decodable {
 
 // MARK: - HTTP delegate (redirect tracking, byte cap, protocol detection)
 
+let kMaxRedirects = 10
+
 final class FetchDelegate: NSObject, URLSessionDataDelegate, URLSessionTaskDelegate {
     var redirectChain: [String] = []
     var collected = Data()
     var truncated = false
     let maxBytes: Int
     let followRedirects: Bool
+    let allowPrivate: Bool
     var protocolName: String?
     private let semaphore = DispatchSemaphore(value: 0)
     var taskError: Error?
+    /// Set when a redirect target fails the SSRF guard or the redirect count
+    /// is exceeded. Checked before `taskError` so the structured reason wins
+    /// over the generic "cancelled" error produced by aborting the task.
+    var redirectBlockError: ToolError?
     var response: HTTPURLResponse?
 
-    init(maxBytes: Int, followRedirects: Bool = true) {
+    init(maxBytes: Int, followRedirects: Bool = true, allowPrivate: Bool = false) {
         self.maxBytes = maxBytes
         self.followRedirects = followRedirects
+        self.allowPrivate = allowPrivate
     }
 
     func wait(timeout: TimeInterval) {
@@ -259,7 +267,37 @@ final class FetchDelegate: NSObject, URLSessionDataDelegate, URLSessionTaskDeleg
         // Honor `follow_redirects: false`. Returning nil to the completion
         // handler stops the redirect; the original 3xx response is delivered
         // and `taskError` stays nil.
-        completionHandler(followRedirects ? request : nil)
+        guard followRedirects else {
+            completionHandler(nil)
+            return
+        }
+        if redirectChain.count > kMaxRedirects {
+            redirectBlockError = ToolError(
+                code: "TOO_MANY_REDIRECTS",
+                message: "Stopped after \(kMaxRedirects) redirects"
+            )
+            completionHandler(nil)
+            task.cancel()
+            return
+        }
+        // Re-run the SSRF guard on every redirect target. Without this, a
+        // public URL could 302 into 127.0.0.1 / 169.254.169.254 / RFC1918
+        // space and bypass the initial-URL check.
+        if let target = request.url {
+            let check = checkSSRF(url: target, allowPrivate: allowPrivate)
+            if !check.allowed {
+                redirectBlockError = ToolError(
+                    code: "SSRF_BLOCKED",
+                    message:
+                        "Redirect to '\(target.absoluteString)' blocked: \(check.reason ?? "SSRF guard rejected the host")",
+                    hint: "Set 'allow_private': true to bypass (use only for trusted local URLs)."
+                )
+                completionHandler(nil)
+                task.cancel()
+                return
+            }
+        }
+        completionHandler(request)
     }
 
     func urlSession(
@@ -330,7 +368,8 @@ func executeRequest(
     body: RequestBody,
     timeout: TimeInterval,
     maxBytes: Int,
-    followRedirects: Bool
+    followRedirects: Bool,
+    allowPrivate: Bool = false
 ) throws -> HTTPResult {
     var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
     request.httpMethod = method.uppercased()
@@ -404,7 +443,11 @@ func executeRequest(
         request.setValue(v, forHTTPHeaderField: k)
     }
 
-    let delegate = FetchDelegate(maxBytes: maxBytes, followRedirects: followRedirects)
+    let delegate = FetchDelegate(
+        maxBytes: maxBytes,
+        followRedirects: followRedirects,
+        allowPrivate: allowPrivate
+    )
     let config = URLSessionConfiguration.ephemeral
     config.httpMaximumConnectionsPerHost = 4
     let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
@@ -412,6 +455,10 @@ func executeRequest(
     task.resume()
     delegate.wait(timeout: timeout + 5)
     session.invalidateAndCancel()
+
+    if let blocked = delegate.redirectBlockError {
+        throw blocked
+    }
 
     if let err = delegate.taskError {
         let nserr = err as NSError
@@ -646,7 +693,8 @@ struct FetchTool {
             body: try bodyFromArgs(parsed),
             timeout: parsed.timeout ?? 30,
             maxBytes: parsed.max_bytes ?? 10 * 1024 * 1024,
-            followRedirects: parsed.follow_redirects ?? true
+            followRedirects: parsed.follow_redirects ?? true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         return [
@@ -684,7 +732,8 @@ struct FetchJSONTool {
             body: try bodyFromArgs(parsed),
             timeout: parsed.timeout ?? 30,
             maxBytes: parsed.max_bytes ?? 10 * 1024 * 1024,
-            followRedirects: parsed.follow_redirects ?? true
+            followRedirects: parsed.follow_redirects ?? true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         var data: [String: Any] = [
@@ -741,7 +790,8 @@ struct FetchHTMLTool {
             body: .none,
             timeout: parsed.timeout ?? 30,
             maxBytes: parsed.max_bytes ?? 10 * 1024 * 1024,
-            followRedirects: parsed.follow_redirects ?? true
+            followRedirects: parsed.follow_redirects ?? true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         guard let html = String(data: result.body, encoding: .utf8) else {
@@ -808,7 +858,8 @@ struct DownloadTool {
             body: .none,
             timeout: parsed.timeout ?? 60,
             maxBytes: parsed.max_bytes ?? 100 * 1024 * 1024,
-            followRedirects: true
+            followRedirects: true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         let target = try resolveDownloadTarget(
@@ -1225,6 +1276,7 @@ private var api: osr_plugin_api = {
             {
               "plugin_id": "osaurus.fetch",
               "name": "Fetch",
+              "version": "2.0.0",
               "description": "HTTP client with SSRF protection, response size limits, and Readability-style HTML extraction.",
               "license": "MIT",
               "authors": ["Osaurus Team"],

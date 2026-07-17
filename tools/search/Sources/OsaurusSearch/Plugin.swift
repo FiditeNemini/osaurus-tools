@@ -564,7 +564,11 @@ private func ddgScrape(_ p: SearchParams) -> Result<[SearchHit], BackendError> {
     guard let data = res.data, let html = String(data: data, encoding: .utf8) else {
         return .failure(BackendError("DDG: empty response"))
     }
-    return .success(parseDDGHTML(html, max: p.max_results))
+    let hits = parseDDGHTML(html, max: p.max_results)
+    if hits.isEmpty {
+        return .failure(BackendError("DDG: parsed_no_results (markup may have changed or the query matched nothing)"))
+    }
+    return .success(hits)
 }
 
 func mapDDGTime(_ tr: String?) -> String? {
@@ -635,7 +639,12 @@ private func braveScrape(_ p: SearchParams) -> Result<[SearchHit], BackendError>
     if isLikelyChallengePage(html) {
         return .failure(BackendError("Brave HTML: challenge_page"))
     }
-    return .success(parseBraveHTML(html, max: p.max_results))
+    let hits = parseBraveHTML(html, max: p.max_results)
+    if hits.isEmpty {
+        return .failure(
+            BackendError("Brave HTML: parsed_no_results (markup may have changed or the query matched nothing)"))
+    }
+    return .success(hits)
 }
 
 /// Detects anti-bot interstitials and other useless responses (e.g. very small bodies that
@@ -804,7 +813,12 @@ private func bingScrape(_ p: SearchParams) -> Result<[SearchHit], BackendError> 
     guard let data = res.data, let html = String(data: data, encoding: .utf8) else {
         return .failure(BackendError("Bing HTML: empty response"))
     }
-    return .success(parseBingHTML(html, max: p.max_results))
+    let hits = parseBingHTML(html, max: p.max_results)
+    if hits.isEmpty {
+        return .failure(
+            BackendError("Bing HTML: parsed_no_results (markup may have changed or the query matched nothing)"))
+    }
+    return .success(hits)
 }
 
 func parseBingHTML(_ html: String, max: Int) -> [SearchHit] {
@@ -909,6 +923,43 @@ func noResultsHint(secrets: [String: String]) -> String {
         "Tried configured backends [\(configured.joined(separator: ", "))] and free fallbacks. Try a broader query or check that your API key is still valid."
 }
 
+/// Scrub configured secret values (and common key-carrying query parameters)
+/// from any diagnostic text that is returned to the model. Backend errors can
+/// embed full request URLs — e.g. Google CSE passes its API key as a `key=`
+/// query parameter — so raw messages must never reach the error envelope.
+func redactSecrets(_ text: String, secrets: [String: String]) -> String {
+    var out = text
+    for value in secrets.values where !value.isEmpty {
+        out = out.replacingOccurrences(of: value, with: "[REDACTED]")
+        if let encoded = value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+            encoded != value
+        {
+            out = out.replacingOccurrences(of: encoded, with: "[REDACTED]")
+        }
+    }
+    if let regex = try? NSRegularExpression(
+        pattern: "(?i)([?&](?:key|api_key|apikey|token|access_token|cx)=)[^&\\s\"']+"
+    ) {
+        out = regex.stringByReplacingMatches(
+            in: out,
+            range: NSRange(out.startIndex..., in: out),
+            withTemplate: "$1[REDACTED]"
+        )
+    }
+    return out
+}
+
+/// Builds a failed-provider `attempts[]` entry with the error text redacted.
+/// Every failure attempt must go through here so provider diagnostics can't
+/// leak API keys into the NO_RESULTS envelope.
+func failureAttempt(provider: String, message: String, secrets: [String: String]) -> [String: Any] {
+    return [
+        "provider": provider,
+        "ok": false,
+        "error": redactSecrets(message, secrets: secrets),
+    ]
+}
+
 /// Drops invalid `provider` and `region` values into nil, recording a warning instead of erroring.
 /// Agents routinely invent values like `"auto"` or `"bing"`; better to silently fall back to
 /// auto-cascade than to fail the whole search.
@@ -994,7 +1045,7 @@ private func runFreeCascadeParallel(
                 if bestProvider == nil { bestProvider = provider }
             }
         case .failure(let err):
-            attempts.append(["provider": provider, "ok": false, "error": err.message])
+            attempts.append(failureAttempt(provider: provider, message: err.message, secrets: params.secrets))
         }
     }
     return (hits, attempts, bestProvider)
@@ -1029,7 +1080,7 @@ func runWebOrNews(_ params: SearchParams) throws -> [String: Any] {
                 usedProvider = pinned
             }
         case .failure(let err):
-            attempts.append(["provider": pinned, "ok": false, "error": err.message])
+            attempts.append(failureAttempt(provider: pinned, message: err.message, secrets: params.secrets))
         }
     } else {
         // Auto-cascade: paid (one at a time, in priority order) → free (in parallel).
@@ -1043,7 +1094,7 @@ func runWebOrNews(_ params: SearchParams) throws -> [String: Any] {
                     usedProvider = provider
                 }
             case .failure(let err):
-                attempts.append(["provider": provider, "ok": false, "error": err.message])
+                attempts.append(failureAttempt(provider: provider, message: err.message, secrets: params.secrets))
             }
             if !deduped.isEmpty { break }
         }
@@ -1218,7 +1269,7 @@ private struct SearchImagesTool {
         case .failure(let err):
             throw ToolError(
                 code: "PROVIDER_UNAVAILABLE",
-                message: err.message,
+                message: redactSecrets(err.message, secrets: params.secrets),
                 hint: "DDG image search is brittle; try again or use a different query."
             )
         }
@@ -1481,6 +1532,7 @@ private var api: osr_plugin_api = {
             {
               "plugin_id": "osaurus.search",
               "name": "Search",
+              "version": "2.3.0",
               "description": "Web search for grounding. Just call search(query=...). Auto-picks the best available backend and returns deduplicated results.",
               "license": "MIT",
               "authors": ["Osaurus Team"],

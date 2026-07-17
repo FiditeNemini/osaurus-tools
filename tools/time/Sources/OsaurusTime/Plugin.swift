@@ -60,6 +60,15 @@ func decodeArgs<T: Decodable>(_ raw: String) throws -> T {
     }
 }
 
+/// Decode args for tools whose parameters are all optional. An empty payload
+/// means "use defaults", but a malformed payload must surface as
+/// `INVALID_ARGS` rather than silently falling back to defaults.
+func decodeOptionalArgs<T: Decodable>(_ raw: String, empty: T) throws -> T {
+    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.isEmpty { return empty }
+    return try decodeArgs(raw)
+}
+
 // MARK: - Date helpers
 
 enum DateParseError: Error {
@@ -214,7 +223,7 @@ struct CurrentTimeTool {
 
     func run(args: String) throws -> [String: Any] {
         struct Args: Decodable { let timezone: String? }
-        let parsed: Args = (try? decodeArgs(args)) ?? Args(timezone: nil)
+        let parsed: Args = try decodeOptionalArgs(args, empty: Args(timezone: nil))
         let tz = try resolveTimezone(parsed.timezone)
         return dateInfo(Date(), timeZone: tz)
     }
@@ -446,7 +455,7 @@ struct ListTimezonesTool {
 
     func run(args: String) throws -> [String: Any] {
         struct Args: Decodable { let prefix: String? }
-        let parsed: Args = (try? decodeArgs(args)) ?? Args(prefix: nil)
+        let parsed: Args = try decodeOptionalArgs(args, empty: Args(prefix: nil))
         let prefix = (parsed.prefix ?? "").lowercased()
         let identifiers: [String] =
             prefix.isEmpty
@@ -534,6 +543,7 @@ private var api: osr_plugin_api = {
             {
               "plugin_id": "osaurus.time",
               "name": "Time",
+              "version": "2.0.5",
               "description": "Date and time arithmetic across timezones — current time, parsing, formatting, conversions, durations, diffs.",
               "license": "MIT",
               "authors": ["Osaurus Team"],
