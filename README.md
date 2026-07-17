@@ -428,7 +428,7 @@ osaurus manifest extract build/time/staging/*.dylib | jq .
 
    ```bash
    ./scripts/build-tool.sh mytool --version 1.0.0
-   osaurus tools install ./build/mytool/osaurus.mytool-1.0.0.zip
+   osaurus tools install ./build/mytool/osaurus.mytool-1.0.0-macos-arm64.zip
    ```
 
    The build script automatically includes `SKILL.md`, `README.md`, `CHANGELOG.md`, and `web/` in the zip if they exist in the tool directory.
@@ -447,9 +447,14 @@ git push origin --tags
 
 The GitHub Actions workflow will:
 
-1. Build the plugin for macOS arm64
+1. Build and test the plugin for macOS arm64
 2. Create a GitHub Release with the artifact
 3. Open a PR to update the registry JSON
+
+This in-repo release workflow (`build-and-release.yml`) requires the same
+signing secrets as external plugins plus a `GH_PAT` secret (GitHub PAT used to
+open the registry update PR). Note the different name: external plugin repos
+calling the reusable `build-plugin.yml` workflow use `REGISTRY_PAT` instead.
 
 ## License
 

@@ -180,8 +180,8 @@ build_tool() {
         print_success "Ad-hoc signed: lib${product_name}.dylib"
     fi
 
-    # Create the zip archive
-    local zip_name="${plugin_id}-${version}.zip"
+    # Create the zip archive (same naming as CI: <plugin_id>-<version>-macos-arm64.zip)
+    local zip_name="${plugin_id}-${version}-macos-arm64.zip"
     local zip_path="$build_output/$zip_name"
 
     print_info "Creating zip archive..."
