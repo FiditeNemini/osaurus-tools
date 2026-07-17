@@ -541,7 +541,7 @@ def validate_plugin_file(filepath, seen_ids):
         return False
 
     if not re.match(r"^[a-z0-9]+(\.[a-z0-9_-]+)+$", plugin_id):
-        print(f"Error: plugin_id '{plugin_id}' must be in dot-separated format (e.g., osaurus.fetch, osaurus.macos-use)")
+        print(f"Error: plugin_id '{plugin_id}' must be in dot-separated format (e.g., osaurus.fetch, mycompany.my-tool)")
         return False
 
     # Unique Constraint: Ensure no duplicate plugin_ids (case-insensitive)
