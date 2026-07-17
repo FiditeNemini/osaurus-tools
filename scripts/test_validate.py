@@ -89,6 +89,49 @@ class TestRequires(unittest.TestCase):
         self.assertFalse(validate.validate_requires(data, "test.json"))
 
 
+class TestCapabilitiesToolNames(unittest.TestCase):
+    @staticmethod
+    def _caps(tools):
+        return {"tools": tools}
+
+    def test_unique_named_tools_pass(self):
+        caps = self._caps(
+            [
+                {"name": "search", "description": "Web search."},
+                {"name": "search_news", "description": "News search."},
+            ]
+        )
+        self.assertTrue(validate.validate_capabilities(caps, "test.json"))
+
+    def test_duplicate_tool_names_fail(self):
+        caps = self._caps(
+            [
+                {"name": "search", "description": "Web search."},
+                {"name": "search", "description": "Web search again."},
+            ]
+        )
+        self.assertFalse(validate.validate_capabilities(caps, "test.json"))
+
+    def test_missing_tool_name_fails(self):
+        caps = self._caps([{"description": "No name here."}])
+        self.assertFalse(validate.validate_capabilities(caps, "test.json"))
+
+    def test_empty_tool_name_fails(self):
+        caps = self._caps([{"name": "   ", "description": "Blank name."}])
+        self.assertFalse(validate.validate_capabilities(caps, "test.json"))
+
+    def test_non_string_tool_name_fails(self):
+        caps = self._caps([{"name": 42, "description": "Numeric name."}])
+        self.assertFalse(validate.validate_capabilities(caps, "test.json"))
+
+    def test_non_object_tool_fails(self):
+        caps = self._caps(["search"])
+        self.assertFalse(validate.validate_capabilities(caps, "test.json"))
+
+    def test_empty_tools_array_passes(self):
+        self.assertTrue(validate.validate_capabilities(self._caps([]), "test.json"))
+
+
 class TestArtifactVerification(unittest.TestCase):
     PUBKEY = "RWTmCafy0+6ViS/ZFdYN+4v3ATECbUamgj4WDgGz7R2/DD1UEHp1eXwt"
 

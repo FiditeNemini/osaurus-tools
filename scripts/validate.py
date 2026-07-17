@@ -324,18 +324,31 @@ def validate_capabilities(capabilities, context):
 
     valid = True
 
-    # tools: array of {name, description}
+    # tools: array of {name, description}. Names must be present, non-empty,
+    # and unique — mirrors the manifest conformance lint in the release
+    # workflows (tool *ids* there project to `name` in the registry catalog).
     if "tools" in capabilities:
         tools = capabilities["tools"]
         if not isinstance(tools, list):
             print(f"Error in {context}: 'capabilities.tools' must be an array")
             valid = False
         else:
+            seen_tool_names = set()
             for idx, tool in enumerate(tools):
                 tc = f"{context} -> tools[{idx}]"
                 if not isinstance(tool, dict):
                     print(f"Error in {tc}: each tool must be an object")
                     valid = False
+                    continue
+                name = tool.get("name")
+                if not isinstance(name, str) or not name.strip():
+                    print(f"Error in {tc}: tool must have a non-empty string 'name'")
+                    valid = False
+                    continue
+                if name in seen_tool_names:
+                    print(f"Error in {tc}: duplicate tool name '{name}'")
+                    valid = False
+                seen_tool_names.add(name)
 
     # skills: array of {name, description} or null
     if "skills" in capabilities and capabilities["skills"] is not None:
