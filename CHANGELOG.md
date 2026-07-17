@@ -3,6 +3,14 @@
 All notable changes to the official Osaurus core tools and registry. Per-plugin
 release notes live in each tool's own `tools/<tool>/CHANGELOG.md`.
 
+> **Correction (2026-07-16):** the "Notes on signing" section below documents
+> the November 2025 key as the current registry public key, but the minisign
+> keypair has since been rotated again (April 2026). The current registry
+> public key for the four core tools is
+> `RWTmCafy0+6ViS/ZFdYN+4v3ATECbUamgj4WDgGz7R2/DD1UEHp1eXwt` — always treat
+> `public_keys.minisign` in `plugins/<id>.json` as the source of truth. The
+> original text is preserved unchanged below.
+
 ## 2.0.0 — Coordinated core-tools overhaul
 
 This release reshapes the official core-tools surface around what an agent
