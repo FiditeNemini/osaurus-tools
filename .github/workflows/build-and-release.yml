@@ -126,6 +126,7 @@ jobs:
 
           cd "$TOOL_DIR"
           swift build -c release
+          swift test
 
           # Find the built dylib
           DYLIB=$(ls .build/release/*.dylib 2>/dev/null | head -1)
