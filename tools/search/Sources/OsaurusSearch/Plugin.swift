@@ -1,14 +1,21 @@
 import Foundation
+import OsaurusPluginABI
+import OsaurusPluginKit
 
 // MARK: - Response Envelope
 
+/// Success envelope built on the SDK's `Envelope.success(fields:)`; the
+/// `{ok, data}` success shape is this plugin's pinned wire format.
 @inline(__always)
 private func okResponse(_ data: [String: Any], warnings: [String] = []) -> String {
-    var payload: [String: Any] = ["ok": true, "data": data]
-    if !warnings.isEmpty { payload["warnings"] = warnings }
-    return jsonString(payload)
+    var fields: [String: Any] = ["data": data]
+    if !warnings.isEmpty { fields["warnings"] = warnings }
+    return Envelope.success(fields: fields)
 }
 
+/// Legacy `{ok:false, error:{code, message, hint?}, data?}` failure shape.
+/// Predates the SDK's canonical failure envelope and is pinned by the test
+/// suite / existing agents, so it stays local.
 @inline(__always)
 private func errorResponse(
     code: String,
@@ -20,16 +27,12 @@ private func errorResponse(
     if let hint = hint { error["hint"] = hint }
     var payload: [String: Any] = ["ok": false, "error": error]
     if let data = data { payload["data"] = data }
-    return jsonString(payload)
-}
-
-private func jsonString(_ obj: Any) -> String {
-    guard JSONSerialization.isValidJSONObject(obj),
-        let data = try? JSONSerialization.data(
-            withJSONObject: obj,
+    guard
+        let serialized = try? JSONSerialization.data(
+            withJSONObject: payload,
             options: [.sortedKeys, .withoutEscapingSlashes]
         ),
-        let str = String(data: data, encoding: .utf8)
+        let str = String(data: serialized, encoding: .utf8)
     else {
         return #"{"ok":false,"error":{"code":"INTERNAL","message":"Failed to serialize response"}}"#
     }
@@ -1484,50 +1487,19 @@ private final class PluginContext {
 
 // MARK: - C ABI
 
-private typealias osr_plugin_ctx_t = UnsafeMutableRawPointer
-private typealias osr_free_string_t = @convention(c) (UnsafePointer<CChar>?) -> Void
-private typealias osr_init_t = @convention(c) () -> osr_plugin_ctx_t?
-private typealias osr_destroy_t = @convention(c) (osr_plugin_ctx_t?) -> Void
-private typealias osr_get_manifest_t = @convention(c) (osr_plugin_ctx_t?) -> UnsafePointer<CChar>?
-private typealias osr_invoke_t =
-    @convention(c) (
-        osr_plugin_ctx_t?,
-        UnsafePointer<CChar>?,
-        UnsafePointer<CChar>?,
-        UnsafePointer<CChar>?
-    ) -> UnsafePointer<CChar>?
-
-private struct osr_plugin_api {
-    var free_string: osr_free_string_t?
-    var `init`: osr_init_t?
-    var destroy: osr_destroy_t?
-    var get_manifest: osr_get_manifest_t?
-    var invoke: osr_invoke_t?
-}
-
-private func makeCString(_ s: String) -> UnsafePointer<CChar>? {
-    guard let ptr = strdup(s) else { return nil }
-    return UnsafePointer(ptr)
-}
-
-private var api: osr_plugin_api = {
-    var api = osr_plugin_api()
-
-    api.free_string = { ptr in
-        if let p = ptr { free(UnsafeMutableRawPointer(mutating: p)) }
-    }
-
-    api.`init` = {
+/// Plugin API table built by the SDK. Stable file-scope storage — the host
+/// keeps the pointer returned from the entry points.
+private var pluginAPI: OsrPluginAPI = PluginEntry.makeAPI(
+    version: OsrABIVersion.v2,
+    init: {
         let ctx = PluginContext()
         return Unmanaged.passRetained(ctx).toOpaque()
-    }
-
-    api.destroy = { ctxPtr in
+    },
+    destroy: { ctxPtr in
         guard let ctxPtr = ctxPtr else { return }
         Unmanaged<PluginContext>.fromOpaque(ctxPtr).release()
-    }
-
-    api.get_manifest = { _ in
+    },
+    getManifest: { _ in
         let manifest = """
             {
               "plugin_id": "osaurus.search",
@@ -1587,10 +1559,9 @@ private var api: osr_plugin_api = {
               }
             }
             """
-        return makeCString(manifest)
-    }
-
-    api.invoke = { ctxPtr, typePtr, idPtr, payloadPtr in
+        return osrMakeCString(manifest)
+    },
+    invoke: { ctxPtr, typePtr, idPtr, payloadPtr in
         guard let ctxPtr = ctxPtr,
             let typePtr = typePtr,
             let idPtr = idPtr,
@@ -1603,7 +1574,7 @@ private var api: osr_plugin_api = {
         let payload = String(cString: payloadPtr)
 
         guard type == "tool" else {
-            return makeCString(
+            return osrMakeCString(
                 errorResponse(
                     code: "UNKNOWN_CAPABILITY",
                     message: "This plugin only handles 'tool' invocations, got '\(type)'."
@@ -1620,7 +1591,7 @@ private var api: osr_plugin_api = {
             case SearchImagesTool.name: outcome = try ctx.searchImagesTool.run(args: payload)
             case SearchAndExtractTool.name: outcome = try ctx.searchAndExtractTool.run(args: payload)
             default:
-                return makeCString(
+                return osrMakeCString(
                     errorResponse(
                         code: "UNKNOWN_TOOL",
                         message: "Unknown tool: '\(id)'.",
@@ -1634,13 +1605,19 @@ private var api: osr_plugin_api = {
         } catch {
             result = errorResponse(code: "INTERNAL", message: error.localizedDescription)
         }
-        return makeCString(result)
+        return osrMakeCString(result)
     }
+)
 
-    return api
-}()
-
+/// Legacy v1 entry — kept for old hosts that don't probe the v2 symbol.
 @_cdecl("osaurus_plugin_entry")
 public func osaurus_plugin_entry() -> UnsafeRawPointer? {
-    return UnsafeRawPointer(&api)
+    PluginEntry.enterV1(api: &pluginAPI)
+}
+
+/// V2 entry — the host tries this first and passes its API table, which the
+/// SDK captures into `HostBridge.shared` before returning the plugin table.
+@_cdecl("osaurus_plugin_entry_v2")
+public func osaurus_plugin_entry_v2(_ host: UnsafeRawPointer?) -> UnsafeRawPointer? {
+    PluginEntry.enterV2(host, api: &pluginAPI)
 }
