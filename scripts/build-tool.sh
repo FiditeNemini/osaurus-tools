@@ -7,8 +7,8 @@
 #   ./scripts/build-tool.sh all             Build all tools
 #
 # Examples:
-#   ./scripts/build-tool.sh time
-#   ./scripts/build-tool.sh git --version 1.0.0
+#   ./scripts/build-tool.sh fetch
+#   ./scripts/build-tool.sh browser --version 1.0.0
 #   ./scripts/build-tool.sh all
 #
 # Environment Variables:
@@ -42,15 +42,15 @@ if [ $# -lt 1 ]; then
     echo "Usage: $0 <tool-name|all> --version <version>"
     echo ""
     echo "Commands:"
-    echo "  <tool-name>    Build a specific tool (e.g., time, git)"
+    echo "  <tool-name>    Build a specific tool (e.g., fetch, browser)"
     echo "  all            Build all tools in the tools/ directory"
     echo ""
     echo "Options:"
     echo "  --version      Version string (required for release builds)"
     echo ""
     echo "Examples:"
-    echo "  $0 time --version 1.0.0"
-    echo "  $0 git --version 1.0.0"
+    echo "  $0 fetch --version 1.0.0"
+    echo "  $0 browser --version 1.0.0"
     echo "  $0 all --version 1.0.0"
     exit 1
 fi

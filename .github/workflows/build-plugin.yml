@@ -145,7 +145,7 @@ jobs:
           ):
               errors.append(
                   f"plugin_id {plugin_id!r} is malformed "
-                  "(expected lowercase dot-separated, e.g. 'osaurus.time')"
+                  "(expected lowercase dot-separated, e.g. 'osaurus.fetch')"
               )
 
           capabilities = manifest.get("capabilities") or {}

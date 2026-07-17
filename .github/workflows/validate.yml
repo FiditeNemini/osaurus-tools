@@ -119,7 +119,7 @@ jobs:
 
       - name: Build and test all plugins
         run: |
-          for tool in time browser fetch search; do
+          for tool in browser fetch; do
             echo "Building $tool..."
             cd tools/$tool
             swift build -c release

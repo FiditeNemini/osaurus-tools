@@ -11,6 +11,27 @@ release notes live in each tool's own `tools/<tool>/CHANGELOG.md`.
 > `public_keys.minisign` in `plugins/<id>.json` as the source of truth. The
 > original text is preserved unchanged below.
 
+## Registry update (2026-07-17) — time and search retired
+
+### Removed
+
+- **`osaurus.time`** — superseded by the host app's built-in `get_current_time`
+  tool (Osaurus 0.22.0+). The plugin's date-arithmetic extras (`format_date`,
+  `parse_date`, `convert_timezone`, `add_duration`, `diff_dates`,
+  `list_timezones`) saw little agent use; models handle this reasoning inline
+  once they have the current time.
+- **`osaurus.search`** — superseded by the host app's native web search
+  (`web_search`, `search_and_extract`, Osaurus 0.22.0+), which ships the same
+  pluggable provider stack (free scraping by default, Tavily / Brave / Serper /
+  Google CSE / Kagi / You.com via API key) with provider settings in the
+  Search tab. The host migrates plugin-configured API keys automatically.
+
+The catalog files for both plugins have been deleted from `plugins/`, matching
+the `osaurus.filesystem` / `osaurus.git` retirement in 2.0.0: existing GitHub
+release artifacts remain reachable by direct URL and installed copies keep
+working, but the plugins are no longer discoverable or installable through the
+registry.
+
 ## 2.0.0 — Coordinated core-tools overhaul
 
 This release reshapes the official core-tools surface around what an agent
