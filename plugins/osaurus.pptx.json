@@ -72,49 +72,17 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
-      "release_date": "2026-02-07",
+      "version": "1.0.4",
+      "release_date": "2026-06-29",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.0/osaurus.pptx-1.0.0-macos-arm64.zip",
-          "sha256": "d7554c038203e496533ebe7565e7e2758d7d9eccb1f62f2490631c71891fd0cf",
+          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.4/osaurus.pptx-1.0.4-macos-arm64.zip",
+          "sha256": "fbbb3a31473a13553a846d773da3c714f2bc455cb4ce536891de8bfb6ef5b564",
           "min_macos": "15.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6Vidy33YLCTSwNxp0/9pG/G3Q4E3lwLpLzZTSOgr85kQ+SohthDbCbheIOSt0+Ey4n3fwwi3OWRsptupob6oOZQg8=\ntrusted comment: timestamp:1770508341\tfile:osaurus.pptx-1.0.0-macos-arm64.zip\naxR5IXqaXJptz4PICmjPZ1DY5g0CNSSxoma+kuSV8mv9aJwZaZvj85hJrGtQscNzrRnthF3akY8sJ4L7F+rpBA=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.1",
-      "release_date": "2026-02-09",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.1/osaurus.pptx-1.0.1-macos-arm64.zip",
-          "sha256": "93a11ff92eb5981882be78dd30a4ae37af2ca850b3f83ef402fb14c231e27d4e",
-          "min_macos": "15.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViWzAzbIwQZw56JWBXc16YY8gNuG7TjHWQsON9O7RF099FarvaDCpDO4RQBZ8x8YRGbxbh7WwUASMEGET8H4bFgg=\ntrusted comment: timestamp:1770643724\tfile:osaurus.pptx-1.0.1-macos-arm64.zip\nsiIPoHS/UYNF7YnKF1LIsdbn6BMMyvmsLYTBOiVdFbrgUZaqSf9SB8TZ+5wCwF6E+MpyJn/uYmqUGShLinz+Bw=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.2",
-      "release_date": "2026-02-09",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.2/osaurus.pptx-1.0.2-macos-arm64.zip",
-          "sha256": "ca39ab3923a9df33bf81d9f870eb0d12dd06fac739cc5f622dfa85c532a68b1a",
-          "min_macos": "15.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViUSowUsJ8zuoyuNJDF0qj4sKQrcerfqARr6lCCuEDqS2U6vOKRVJRF65AMBgKP7Zm0Pb9X98TMH4GJlM45zM+wA=\ntrusted comment: timestamp:1770644954\tfile:osaurus.pptx-1.0.2-macos-arm64.zip\n6lhV8Jl9hGzTc+RsWPrYkft3FkoPNgOKwVu1Rz9gustSwE78IILGCV9rCvYfFas7muBzYKWtB7VprugvxdpdDw=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViWeXCNds8tv3pmzvmuxv0d6oxFSZUWbjtuM0cs7NsSrCtSAz/e8Yc9KNzcewXeDXVqUcPWsMGsSMD1HDX1Tx7wU=\ntrusted comment: timestamp:1782762081\tfile:osaurus.pptx-1.0.4-macos-arm64.zip\n5tbV7F97qQW5vgE479P70g2EqxMpcMtcuiCr7RuAk8OmhTEabrDl7JJHZr8Lak+RR9R5nBC/ekd/wQORZP5NBw=="
           }
         }
       ]
@@ -136,17 +104,49 @@
       ]
     },
     {
-      "version": "1.0.4",
-      "release_date": "2026-06-29",
+      "version": "1.0.2",
+      "release_date": "2026-02-09",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.4/osaurus.pptx-1.0.4-macos-arm64.zip",
-          "sha256": "fbbb3a31473a13553a846d773da3c714f2bc455cb4ce536891de8bfb6ef5b564",
+          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.2/osaurus.pptx-1.0.2-macos-arm64.zip",
+          "sha256": "ca39ab3923a9df33bf81d9f870eb0d12dd06fac739cc5f622dfa85c532a68b1a",
           "min_macos": "15.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViWeXCNds8tv3pmzvmuxv0d6oxFSZUWbjtuM0cs7NsSrCtSAz/e8Yc9KNzcewXeDXVqUcPWsMGsSMD1HDX1Tx7wU=\ntrusted comment: timestamp:1782762081\tfile:osaurus.pptx-1.0.4-macos-arm64.zip\n5tbV7F97qQW5vgE479P70g2EqxMpcMtcuiCr7RuAk8OmhTEabrDl7JJHZr8Lak+RR9R5nBC/ekd/wQORZP5NBw=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViUSowUsJ8zuoyuNJDF0qj4sKQrcerfqARr6lCCuEDqS2U6vOKRVJRF65AMBgKP7Zm0Pb9X98TMH4GJlM45zM+wA=\ntrusted comment: timestamp:1770644954\tfile:osaurus.pptx-1.0.2-macos-arm64.zip\n6lhV8Jl9hGzTc+RsWPrYkft3FkoPNgOKwVu1Rz9gustSwE78IILGCV9rCvYfFas7muBzYKWtB7VprugvxdpdDw=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "release_date": "2026-02-09",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.1/osaurus.pptx-1.0.1-macos-arm64.zip",
+          "sha256": "93a11ff92eb5981882be78dd30a4ae37af2ca850b3f83ef402fb14c231e27d4e",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViWzAzbIwQZw56JWBXc16YY8gNuG7TjHWQsON9O7RF099FarvaDCpDO4RQBZ8x8YRGbxbh7WwUASMEGET8H4bFgg=\ntrusted comment: timestamp:1770643724\tfile:osaurus.pptx-1.0.1-macos-arm64.zip\nsiIPoHS/UYNF7YnKF1LIsdbn6BMMyvmsLYTBOiVdFbrgUZaqSf9SB8TZ+5wCwF6E+MpyJn/uYmqUGShLinz+Bw=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "release_date": "2026-02-07",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.0.0/osaurus.pptx-1.0.0-macos-arm64.zip",
+          "sha256": "d7554c038203e496533ebe7565e7e2758d7d9eccb1f62f2490631c71891fd0cf",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6Vidy33YLCTSwNxp0/9pG/G3Q4E3lwLpLzZTSOgr85kQ+SohthDbCbheIOSt0+Ey4n3fwwi3OWRsptupob6oOZQg8=\ntrusted comment: timestamp:1770508341\tfile:osaurus.pptx-1.0.0-macos-arm64.zip\naxR5IXqaXJptz4PICmjPZ1DY5g0CNSSxoma+kuSV8mv9aJwZaZvj85hJrGtQscNzrRnthF3akY8sJ4L7F+rpBA=="
           }
         }
       ]

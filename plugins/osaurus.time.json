@@ -49,65 +49,18 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
-      "release_date": "2025-11-25",
+      "version": "2.0.5",
+      "release_date": "2026-05-11",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.0/osaurus.time-1.0.0.zip",
-          "sha256": "c05b5355c6ad049914f5b69d57fafe087be721ea914b66203e56a7806bfabd88",
-          "size": 16521,
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-2.0.5/osaurus.time-2.0.5-macos-arm64.zip",
+          "sha256": "4a0def0e8c0d5950efe02f1926bca1fa883dac461e356277f08f9620160b255e",
+          "size": 64620,
+          "min_macos": "13.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViXYc0vfLnodSv5Pyl+r6J0vx5l/FO7i0epTn2AiK4SFl/FglRIhtW9QCflYMoi7v5DZGHuZTOtpfTYKiRclIQww=\ntrusted comment: file:osaurus.time-1.0.0.zip\nj7guWnuSijnqE2Sb75SGXaR7dYuZbDHB0W5i24c8SElOqLzwmfbl2Tek8MReSmkGndWkCCxmdm8OHKxxNNsSBA==\n"
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.1",
-      "release_date": "2025-11-30",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.1/osaurus.time-1.0.1.zip",
-          "sha256": "3e7bb2f5c0246ba38555cc63b484209f5b8460bf4f9e8236e57bc8788b7b6778",
-          "size": 16736,
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViX6+/zAYP9tv28D9BddsZ5UzBPm/vJyklcpDwowX4L2SMwF1cFg0ZGdqy+23DQOGTuSii3meVi7wDLI6+vlEXAU=\ntrusted comment: file:osaurus.time-1.0.1.zip\nQXYVvVXv4xKLlbSYpD4XY3aRF0ug1A2zfUK8m3B7QtPx7lId2p14oodXxWXNTyHjMnwjkvysfpvlrnb7edamAQ==\n"
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.2",
-      "release_date": "2025-11-30",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.2/osaurus.time-1.0.2.zip",
-          "sha256": "e0f7f6c668e0ff36e1f1278b7983b709b4c3ea7a4e78d6670bbb9003169bc400",
-          "size": 21855,
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViUnOV/LDXJpDXdgBXvuNNFrHRJKxeIqvekJ5OEX0z4u0BdA6Mwg9EyQhzOkK6Pmsdjr+Ny9k+2JzxB5dchssDAk=\ntrusted comment: file:osaurus.time-1.0.2.zip\nr9p3sNfKzcFFHDgxFARpq704Ccufs8UxuqdGzKrbYLvFt2gCj0DefAq0TGGDatZbpfivLoyPHGYOoXU387B8AA==\n"
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.3",
-      "release_date": "2025-12-01",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.3/osaurus.time-1.0.3.zip",
-          "sha256": "c73bef2c7fd0c0bdb1ce6f28ec19150fdf763e8c9a2060e953888ffca6e3dd65",
-          "size": 21199,
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViYX1X7OcH1wY6dqLcQBQ3joe+hKgAmYPqxd2qkzyXdfQeU16WO9msAmKX57hsYngDxg3Oc6gHeqduOl7/sY/YgA=\ntrusted comment: file:osaurus.time-1.0.3.zip\nhIhFbfpyYkT+NkzF1vsvW5Ixhcu/n22mucJuI92Cu+2ybHpzdiV3kb/iyjLVRKDN0xSoz+SlO89S+8ej0Ek5Aw==\n"
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VifXNEN23IBAsOZN1rvjCWmoyutMF1vY7tMWz74RSU/6AexNk9ybnONRwu45yKvOQsqsnqLYTsbDUVcFEhJ1jhwQ=\ntrusted comment: timestamp:1778496125\tfile:osaurus.time-2.0.5-macos-arm64.zip\nAYaeYOsJnLD/N/Yk1E04F5iNpuUL85zBlbncxVBqiVcBQI/AHxVfWTPXdH0Ans2F7WGVaT/MPSXCofrxX7eaBg=="
           }
         }
       ]
@@ -130,18 +83,65 @@
       ]
     },
     {
-      "version": "2.0.5",
-      "release_date": "2026-05-11",
+      "version": "1.0.3",
+      "release_date": "2025-12-01",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-2.0.5/osaurus.time-2.0.5-macos-arm64.zip",
-          "sha256": "4a0def0e8c0d5950efe02f1926bca1fa883dac461e356277f08f9620160b255e",
-          "size": 64620,
-          "min_macos": "13.0",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.3/osaurus.time-1.0.3.zip",
+          "sha256": "c73bef2c7fd0c0bdb1ce6f28ec19150fdf763e8c9a2060e953888ffca6e3dd65",
+          "size": 21199,
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VifXNEN23IBAsOZN1rvjCWmoyutMF1vY7tMWz74RSU/6AexNk9ybnONRwu45yKvOQsqsnqLYTsbDUVcFEhJ1jhwQ=\ntrusted comment: timestamp:1778496125\tfile:osaurus.time-2.0.5-macos-arm64.zip\nAYaeYOsJnLD/N/Yk1E04F5iNpuUL85zBlbncxVBqiVcBQI/AHxVfWTPXdH0Ans2F7WGVaT/MPSXCofrxX7eaBg=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViYX1X7OcH1wY6dqLcQBQ3joe+hKgAmYPqxd2qkzyXdfQeU16WO9msAmKX57hsYngDxg3Oc6gHeqduOl7/sY/YgA=\ntrusted comment: file:osaurus.time-1.0.3.zip\nhIhFbfpyYkT+NkzF1vsvW5Ixhcu/n22mucJuI92Cu+2ybHpzdiV3kb/iyjLVRKDN0xSoz+SlO89S+8ej0Ek5Aw==\n"
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "release_date": "2025-11-30",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.2/osaurus.time-1.0.2.zip",
+          "sha256": "e0f7f6c668e0ff36e1f1278b7983b709b4c3ea7a4e78d6670bbb9003169bc400",
+          "size": 21855,
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViUnOV/LDXJpDXdgBXvuNNFrHRJKxeIqvekJ5OEX0z4u0BdA6Mwg9EyQhzOkK6Pmsdjr+Ny9k+2JzxB5dchssDAk=\ntrusted comment: file:osaurus.time-1.0.2.zip\nr9p3sNfKzcFFHDgxFARpq704Ccufs8UxuqdGzKrbYLvFt2gCj0DefAq0TGGDatZbpfivLoyPHGYOoXU387B8AA==\n"
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "release_date": "2025-11-30",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.1/osaurus.time-1.0.1.zip",
+          "sha256": "3e7bb2f5c0246ba38555cc63b484209f5b8460bf4f9e8236e57bc8788b7b6778",
+          "size": 16736,
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViX6+/zAYP9tv28D9BddsZ5UzBPm/vJyklcpDwowX4L2SMwF1cFg0ZGdqy+23DQOGTuSii3meVi7wDLI6+vlEXAU=\ntrusted comment: file:osaurus.time-1.0.1.zip\nQXYVvVXv4xKLlbSYpD4XY3aRF0ug1A2zfUK8m3B7QtPx7lId2p14oodXxWXNTyHjMnwjkvysfpvlrnb7edamAQ==\n"
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "release_date": "2025-11-25",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/time-1.0.0/osaurus.time-1.0.0.zip",
+          "sha256": "c05b5355c6ad049914f5b69d57fafe087be721ea914b66203e56a7806bfabd88",
+          "size": 16521,
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViXYc0vfLnodSv5Pyl+r6J0vx5l/FO7i0epTn2AiK4SFl/FglRIhtW9QCflYMoi7v5DZGHuZTOtpfTYKiRclIQww=\ntrusted comment: file:osaurus.time-1.0.0.zip\nj7guWnuSijnqE2Sb75SGXaR7dYuZbDHB0W5i24c8SElOqLzwmfbl2Tek8MReSmkGndWkCCxmdm8OHKxxNNsSBA==\n"
           }
         }
       ]

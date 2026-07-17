@@ -104,116 +104,23 @@
   "public_keys": {
     "minisign": "RWRh6pAWTUF1v3nbeg9mR/uXP+t+6F7H6t3IGops0j57Z1kPmOstbURj"
   },
+  "requires": {
+    "min_macos": "13.0",
+    "osaurus_min_version": "0.5.0"
+  },
   "versions": [
     {
-      "version": "1.1.4",
-      "release_date": "2026-01-06",
+      "version": "3.0.3",
+      "release_date": "2026-06-29",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "min_macos": "13.0",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.1.4/osaurus.macos-use-1.1.4.zip",
-          "sha256": "53252a26fbc59f7a22279e4a6d5ca4da35c5d296b8b3237953b0cb01e4ea1720",
-          "size": 135725,
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v4ZBP3zSP4nmgvSdxmgHyc2x+AK2Zl6FHbljo5UhpQiH4Z+Kl+XoB6m9W2hqNV7wzHTCzu5YZqULV7Uo2S9FJQ4=\ntrusted comment: timestamp:1767736600\tfile:osaurus.macos-use-1.1.4.zip\nM3XrLNz1K6zDkkgbklDWo0Y8O2lZjdHFMV6IVG2RQQK6moQCuhJuRiz32L5YZHMJDxijW+mtUj3xOvUX15h6Aw=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.1.5",
-      "release_date": "2026-01-27",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.1.5/osaurus.macos-use-1.1.5-macos-arm64.zip",
-          "sha256": "1f216ff36258b56488a53808b656d02ddcc4d45032eb06bc77d95ac293e4df98",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/3.0.3/osaurus.macos-use-3.0.3-macos-arm64.zip",
+          "sha256": "06f455a0df1116e280c6a1a639187e207d3a950616e89d106f3af8983fbf8228",
           "min_macos": "13.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1vxqIPKWjekh9QimJPe1Dqmy/BKYDKE2Vtw9r2Oq7YEwimFxa6aqXVsdo011qEkEFzf4P4zia0F89xwXQapZ4GwE=\ntrusted comment: timestamp:1769509890\tfile:osaurus.macos-use-1.1.5-macos-arm64.zip\n5oiOBmcW23NWDo5f3cgDbPU0RsgMA9PbAOXp3qHp03dtwjAarAGR1kZPypdaZ58qo08QZLH3B9OgOu+WVWMhAw=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.1.6",
-      "release_date": "2026-01-30",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.1.6/osaurus.macos-use-1.1.6-macos-arm64.zip",
-          "sha256": "04216ca689715fc9719d2d1d047c6cf8a72e3e7e3a40ba86e36e56b0f90a9224",
-          "min_macos": "13.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v9fC1PCMjOsP+KXa70zL+hNCG/ov/XBSpXmQkoEqGDj7di5/Df4RioAlt09XNRpuN+QR89EsBq1x10MF7GQpoAg=\ntrusted comment: timestamp:1769772749\tfile:osaurus.macos-use-1.1.6-macos-arm64.zip\nF4cSlCTQo6/4nw4TCAmlIV8aU/jylkHPuHZdSOa8z91Ss8k8jyGzCbCmowpw4Ij5qQjX7sH8/Bb8dM+NMONfBA=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.2.0",
-      "release_date": "2026-02-12",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.2.0/osaurus.macos-use-1.2.0-macos-arm64.zip",
-          "sha256": "9bbb809e804716b229ac06100903138fd9c0fd228f5ac52b12fde287004ab7d5",
-          "min_macos": "13.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v7mciH34h8WEE3+dN2/5FgRk0xaG/Pv2K2l2eygSDGjfpjEVg+Ce+uL+3rbGHJ4yCgRobuxwku2U/76K702dLgo=\ntrusted comment: timestamp:1770919980\tfile:osaurus.macos-use-1.2.0-macos-arm64.zip\ncqqJJ75N0jnIIZCrq4ubQAbPtIsoX4ZYTZPF+f3qSoaPSP5x48pnKbvh7/obADvK+AlCj6oTLyEbyrU9UqJ1Ag=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.2.1",
-      "release_date": "2026-02-12",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.2.1/osaurus.macos-use-1.2.1-macos-arm64.zip",
-          "sha256": "68f95a0cacde041bf42d287e76db0e462668954a07966f7dffc2820a15fbcd51",
-          "min_macos": "13.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v0h9VVtSDqa+bPRU2ZrmJImN4fsugkkV4oEsc88UPQN+6acT7SAM+QArmKJlqkAV9zhcnXChgKhbzPzkicwCzQM=\ntrusted comment: timestamp:1770920809\tfile:osaurus.macos-use-1.2.1-macos-arm64.zip\nt7iYaa1G2w2BhEnauj1vvTWG3O7eqXXfF5ENSe9FNxq53ttmCoXpxDW0hliPi3zmGw9xzrajQ9iWIm9nw1urAQ=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "2.0.0",
-      "release_date": "2026-04-23",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/2.0.0/osaurus.macos-use-2.0.0-macos-arm64.zip",
-          "sha256": "9c694dfade254566ed6af44898e938c4f8f41452665c37ef6df43ba85f91f2a7",
-          "min_macos": "13.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v9KZKq/8+t1TFugYnRX9aZBIqgvuTvl7hTJ2VBCmrUCZoPgxTfm7+KXs9mawjNYIEfQ8Zy8zq7KHy8BZpUeV3A8=\ntrusted comment: timestamp:1776947843\tfile:osaurus.macos-use-2.0.0-macos-arm64.zip\n1cWMDkjWuSLlVg3buAEPsDNr9UivV7Zf6XnWaCDgWC/YNW/ReAFjAV8C3mwrPSlMPtZPvKRA4yzl0PTHYmypBg=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "3.0.0",
-      "release_date": "2026-04-24",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/3.0.0/osaurus.macos-use-3.0.0-macos-arm64.zip",
-          "sha256": "02948122b4bed3fb1fd1fba732fe7b3ac5f57fbd965d2486cd00d7fa5525f26f",
-          "min_macos": "13.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1vzfQKh+r9xxHgfedYO5rdktlLMYZBk7LZCb9Dha3Jhjw/1a7KkYRooiK5Pt0rGvnydNMsjYBW68xtp0w0gkYfwE=\ntrusted comment: timestamp:1777033499\tfile:osaurus.macos-use-3.0.0-macos-arm64.zip\nnnSM8oUua6sZ/7G8oqqnpH0LMZMneYX05vLnGmzjM6yUjFjk3PAPLi4GhSONRVk7IwSf7lKi0ps9tC9/LhimBA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v4JTYms2M9fdVJ15GD5gStsnnOtvzzWbghKsPyNpcyasPg+e/bztZeS3MKqEKTMbvrvNJL93kj2O1yZWbxWAEQw=\ntrusted comment: timestamp:1782761910\tfile:osaurus.macos-use-3.0.3-macos-arm64.zip\n+nATQm+O2V7XwSyHH/DCeA4LlcIZeciMOglk/+0fO0KzUG8sgZ1mgq1523DLiPl2khSGWYM68Wm4+f1VJZPUBA=="
           }
         }
       ]
@@ -235,17 +142,114 @@
       ]
     },
     {
-      "version": "3.0.3",
-      "release_date": "2026-06-29",
+      "version": "3.0.0",
+      "release_date": "2026-04-24",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/3.0.3/osaurus.macos-use-3.0.3-macos-arm64.zip",
-          "sha256": "06f455a0df1116e280c6a1a639187e207d3a950616e89d106f3af8983fbf8228",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/3.0.0/osaurus.macos-use-3.0.0-macos-arm64.zip",
+          "sha256": "02948122b4bed3fb1fd1fba732fe7b3ac5f57fbd965d2486cd00d7fa5525f26f",
           "min_macos": "13.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v4JTYms2M9fdVJ15GD5gStsnnOtvzzWbghKsPyNpcyasPg+e/bztZeS3MKqEKTMbvrvNJL93kj2O1yZWbxWAEQw=\ntrusted comment: timestamp:1782761910\tfile:osaurus.macos-use-3.0.3-macos-arm64.zip\n+nATQm+O2V7XwSyHH/DCeA4LlcIZeciMOglk/+0fO0KzUG8sgZ1mgq1523DLiPl2khSGWYM68Wm4+f1VJZPUBA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1vzfQKh+r9xxHgfedYO5rdktlLMYZBk7LZCb9Dha3Jhjw/1a7KkYRooiK5Pt0rGvnydNMsjYBW68xtp0w0gkYfwE=\ntrusted comment: timestamp:1777033499\tfile:osaurus.macos-use-3.0.0-macos-arm64.zip\nnnSM8oUua6sZ/7G8oqqnpH0LMZMneYX05vLnGmzjM6yUjFjk3PAPLi4GhSONRVk7IwSf7lKi0ps9tC9/LhimBA=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "2.0.0",
+      "release_date": "2026-04-23",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/2.0.0/osaurus.macos-use-2.0.0-macos-arm64.zip",
+          "sha256": "9c694dfade254566ed6af44898e938c4f8f41452665c37ef6df43ba85f91f2a7",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v9KZKq/8+t1TFugYnRX9aZBIqgvuTvl7hTJ2VBCmrUCZoPgxTfm7+KXs9mawjNYIEfQ8Zy8zq7KHy8BZpUeV3A8=\ntrusted comment: timestamp:1776947843\tfile:osaurus.macos-use-2.0.0-macos-arm64.zip\n1cWMDkjWuSLlVg3buAEPsDNr9UivV7Zf6XnWaCDgWC/YNW/ReAFjAV8C3mwrPSlMPtZPvKRA4yzl0PTHYmypBg=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.2.1",
+      "release_date": "2026-02-12",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.2.1/osaurus.macos-use-1.2.1-macos-arm64.zip",
+          "sha256": "68f95a0cacde041bf42d287e76db0e462668954a07966f7dffc2820a15fbcd51",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v0h9VVtSDqa+bPRU2ZrmJImN4fsugkkV4oEsc88UPQN+6acT7SAM+QArmKJlqkAV9zhcnXChgKhbzPzkicwCzQM=\ntrusted comment: timestamp:1770920809\tfile:osaurus.macos-use-1.2.1-macos-arm64.zip\nt7iYaa1G2w2BhEnauj1vvTWG3O7eqXXfF5ENSe9FNxq53ttmCoXpxDW0hliPi3zmGw9xzrajQ9iWIm9nw1urAQ=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "release_date": "2026-02-12",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.2.0/osaurus.macos-use-1.2.0-macos-arm64.zip",
+          "sha256": "9bbb809e804716b229ac06100903138fd9c0fd228f5ac52b12fde287004ab7d5",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v7mciH34h8WEE3+dN2/5FgRk0xaG/Pv2K2l2eygSDGjfpjEVg+Ce+uL+3rbGHJ4yCgRobuxwku2U/76K702dLgo=\ntrusted comment: timestamp:1770919980\tfile:osaurus.macos-use-1.2.0-macos-arm64.zip\ncqqJJ75N0jnIIZCrq4ubQAbPtIsoX4ZYTZPF+f3qSoaPSP5x48pnKbvh7/obADvK+AlCj6oTLyEbyrU9UqJ1Ag=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.1.6",
+      "release_date": "2026-01-30",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.1.6/osaurus.macos-use-1.1.6-macos-arm64.zip",
+          "sha256": "04216ca689715fc9719d2d1d047c6cf8a72e3e7e3a40ba86e36e56b0f90a9224",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v9fC1PCMjOsP+KXa70zL+hNCG/ov/XBSpXmQkoEqGDj7di5/Df4RioAlt09XNRpuN+QR89EsBq1x10MF7GQpoAg=\ntrusted comment: timestamp:1769772749\tfile:osaurus.macos-use-1.1.6-macos-arm64.zip\nF4cSlCTQo6/4nw4TCAmlIV8aU/jylkHPuHZdSOa8z91Ss8k8jyGzCbCmowpw4Ij5qQjX7sH8/Bb8dM+NMONfBA=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.1.5",
+      "release_date": "2026-01-27",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.1.5/osaurus.macos-use-1.1.5-macos-arm64.zip",
+          "sha256": "1f216ff36258b56488a53808b656d02ddcc4d45032eb06bc77d95ac293e4df98",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1vxqIPKWjekh9QimJPe1Dqmy/BKYDKE2Vtw9r2Oq7YEwimFxa6aqXVsdo011qEkEFzf4P4zia0F89xwXQapZ4GwE=\ntrusted comment: timestamp:1769509890\tfile:osaurus.macos-use-1.1.5-macos-arm64.zip\n5oiOBmcW23NWDo5f3cgDbPU0RsgMA9PbAOXp3qHp03dtwjAarAGR1kZPypdaZ58qo08QZLH3B9OgOu+WVWMhAw=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.1.4",
+      "release_date": "2026-01-06",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "min_macos": "13.0",
+          "url": "https://github.com/osaurus-ai/osaurus-macos-use/releases/download/1.1.4/osaurus.macos-use-1.1.4.zip",
+          "sha256": "53252a26fbc59f7a22279e4a6d5ca4da35c5d296b8b3237953b0cb01e4ea1720",
+          "size": 135725,
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWRh6pAWTUF1v4ZBP3zSP4nmgvSdxmgHyc2x+AK2Zl6FHbljo5UhpQiH4Z+Kl+XoB6m9W2hqNV7wzHTCzu5YZqULV7Uo2S9FJQ4=\ntrusted comment: timestamp:1767736600\tfile:osaurus.macos-use-1.1.4.zip\nM3XrLNz1K6zDkkgbklDWo0Y8O2lZjdHFMV6IVG2RQQK6moQCuhJuRiz32L5YZHMJDxijW+mtUj3xOvUX15h6Aw=="
           }
         }
       ]

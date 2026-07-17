@@ -39,6 +39,56 @@ def _artifact(url, sha256):
     }
 
 
+class TestSemverOrdering(unittest.TestCase):
+    def test_sort_key_orders_numerically_not_lexicographically(self):
+        versions = ["1.0.4", "1.0.10", "1.0.9"]
+        ordered = sorted(versions, key=validate.semver_sort_key, reverse=True)
+        self.assertEqual(ordered, ["1.0.10", "1.0.9", "1.0.4"])
+
+    def test_prerelease_sorts_below_release(self):
+        versions = ["1.0.0", "1.0.0-beta", "1.0.0-alpha"]
+        ordered = sorted(versions, key=validate.semver_sort_key, reverse=True)
+        self.assertEqual(ordered, ["1.0.0", "1.0.0-beta", "1.0.0-alpha"])
+
+    def test_descending_order_passes(self):
+        versions = [{"version": v} for v in ["2.0.0", "1.0.10", "1.0.2"]]
+        self.assertTrue(validate.validate_versions_order(versions, "test.json"))
+
+    def test_ascending_order_fails(self):
+        versions = [{"version": v} for v in ["1.0.0", "1.0.1", "2.0.0"]]
+        self.assertFalse(validate.validate_versions_order(versions, "test.json"))
+
+    def test_lexicographic_order_fails(self):
+        # jq's unique_by produces this order; it is wrong for semver.
+        versions = [{"version": v} for v in ["1.0.10", "1.0.4", "1.0.9"]]
+        self.assertFalse(validate.validate_versions_order(versions, "test.json"))
+
+    def test_duplicate_versions_fail(self):
+        versions = [{"version": v} for v in ["1.0.1", "1.0.1", "1.0.0"]]
+        self.assertFalse(validate.validate_versions_order(versions, "test.json"))
+
+
+class TestRequires(unittest.TestCase):
+    def test_top_level_requires_passes(self):
+        data = {"requires": {"min_macos": "13.0", "osaurus_min_version": "0.5.0"}}
+        self.assertTrue(validate.validate_requires(data, "test.json"))
+
+    def test_core_tool_min_osaurus_passes(self):
+        data = {"min_osaurus": "0.5.0", "min_macos": "13.0"}
+        self.assertTrue(validate.validate_requires(data, "test.json"))
+
+    def test_missing_requires_fails(self):
+        self.assertFalse(validate.validate_requires({}, "test.json"))
+
+    def test_requires_without_min_version_fails(self):
+        data = {"requires": {"min_macos": "13.0"}}
+        self.assertFalse(validate.validate_requires(data, "test.json"))
+
+    def test_invalid_semver_fails(self):
+        data = {"requires": {"osaurus_min_version": "not-a-version"}}
+        self.assertFalse(validate.validate_requires(data, "test.json"))
+
+
 class TestArtifactVerification(unittest.TestCase):
     PUBKEY = "RWTmCafy0+6ViS/ZFdYN+4v3ATECbUamgj4WDgGz7R2/DD1UEHp1eXwt"
 

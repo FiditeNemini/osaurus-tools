@@ -35,33 +35,18 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
-      "release_date": "2025-11-25",
+      "version": "2.0.0",
+      "release_date": "2026-04-22",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.0/osaurus.fetch-1.0.0.zip",
-          "sha256": "90c3f5220675591690d7227cd66d209dd320240c68f6b3d4945dddc16e8827d7",
-          "size": 38450,
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-2.0.0/osaurus.fetch-2.0.0-macos-arm64.zip",
+          "sha256": "911733b3340cdd68ec477cd1b83c23c5521993f0f2979486f78e0c3580306929",
+          "size": 99818,
+          "min_macos": "13.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VifTdb1JPO1BDo++9JM3yWYXL+SfjmElvzdDxQqzLI0R17k3+YcsiP1qimFQ7eWeg2ntxFtpxJmdKpQF0Ux1JfQQ=\ntrusted comment: file:osaurus.fetch-1.0.0.zip\nqR65B7a7z6airMA9bQS8yh8wnRvw8LAwHHff98y4rdkwmu5IbjMnnkxpRWwYuVquu7WelAqsS33ZL1k4dRdgBw==\n"
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.1",
-      "release_date": "2025-11-30",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.1/osaurus.fetch-1.0.1.zip",
-          "sha256": "bb5738cd383924fcba563a755fa1ca5fae7b8170aafdb46b9f5a103ab512294b",
-          "size": 38736,
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViQFk45br/CotUovYv0zGG5R6F0EcGwcVFWMmI1dPeKjdEitVrwW3YaWiavOYR/FBkYcAO3V7B7p/wznxTbEfvgA=\ntrusted comment: file:osaurus.fetch-1.0.1.zip\nzK0R5jeKNI+M1ykhfQCZhDnVHs7iQ61UTACDsBmGBF3awDkhq/TVa7u2fp09S71YBlovwD5UwF2/skZTyC2zBw==\n"
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViauJ+X83/gBnLI6fKCQQ7sKqwCTBLrcELpzi1tVZAQlZsYn57o1p9ZodHW94hgTTY7zGNql9+0nbImTv2g7oYQQ=\ntrusted comment: timestamp:1776897179\tfile:osaurus.fetch-2.0.0-macos-arm64.zip\nhfaplcKkWAWxPnDFxyprfwHqD7xk4RIpo/zijr4yAd0khfqbiKqOg0/KOCIBcBShmDi2LsYNxZjhlbBTopyaAA=="
           }
         }
       ]
@@ -83,18 +68,33 @@
       ]
     },
     {
-      "version": "2.0.0",
-      "release_date": "2026-04-22",
+      "version": "1.0.1",
+      "release_date": "2025-11-30",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-2.0.0/osaurus.fetch-2.0.0-macos-arm64.zip",
-          "sha256": "911733b3340cdd68ec477cd1b83c23c5521993f0f2979486f78e0c3580306929",
-          "size": 99818,
-          "min_macos": "13.0",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.1/osaurus.fetch-1.0.1.zip",
+          "sha256": "bb5738cd383924fcba563a755fa1ca5fae7b8170aafdb46b9f5a103ab512294b",
+          "size": 38736,
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViauJ+X83/gBnLI6fKCQQ7sKqwCTBLrcELpzi1tVZAQlZsYn57o1p9ZodHW94hgTTY7zGNql9+0nbImTv2g7oYQQ=\ntrusted comment: timestamp:1776897179\tfile:osaurus.fetch-2.0.0-macos-arm64.zip\nhfaplcKkWAWxPnDFxyprfwHqD7xk4RIpo/zijr4yAd0khfqbiKqOg0/KOCIBcBShmDi2LsYNxZjhlbBTopyaAA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViQFk45br/CotUovYv0zGG5R6F0EcGwcVFWMmI1dPeKjdEitVrwW3YaWiavOYR/FBkYcAO3V7B7p/wznxTbEfvgA=\ntrusted comment: file:osaurus.fetch-1.0.1.zip\nzK0R5jeKNI+M1ykhfQCZhDnVHs7iQ61UTACDsBmGBF3awDkhq/TVa7u2fp09S71YBlovwD5UwF2/skZTyC2zBw==\n"
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "release_date": "2025-11-25",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.0/osaurus.fetch-1.0.0.zip",
+          "sha256": "90c3f5220675591690d7227cd66d209dd320240c68f6b3d4945dddc16e8827d7",
+          "size": 38450,
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VifTdb1JPO1BDo++9JM3yWYXL+SfjmElvzdDxQqzLI0R17k3+YcsiP1qimFQ7eWeg2ntxFtpxJmdKpQF0Ux1JfQQ=\ntrusted comment: file:osaurus.fetch-1.0.0.zip\nqR65B7a7z6airMA9bQS8yh8wnRvw8LAwHHff98y4rdkwmu5IbjMnnkxpRWwYuVquu7WelAqsS33ZL1k4dRdgBw==\n"
           }
         }
       ]

@@ -27,6 +27,72 @@ MINISIGN_PUBKEY_REGEX = re.compile(r"^RW[A-Za-z0-9+/]{50,}={0,2}$")
 def validate_semver(version):
     return bool(SEMVER_REGEX.match(version))
 
+def semver_sort_key(version):
+    """Sort key implementing semver precedence (build metadata ignored)."""
+    m = SEMVER_REGEX.match(version)
+    major, minor, patch = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    prerelease = m.group(4)
+    if prerelease is None:
+        # A release version has higher precedence than any of its pre-releases
+        pre_key = (1,)
+    else:
+        identifiers = []
+        for ident in prerelease.split("."):
+            if ident.isdigit():
+                identifiers.append((0, int(ident), ""))
+            else:
+                identifiers.append((1, 0, ident))
+        pre_key = (0, tuple(identifiers))
+    return (major, minor, patch, pre_key)
+
+def validate_versions_order(versions, filepath):
+    """Versions must be unique and sorted descending by semver (newest first)."""
+    version_strings = [v.get("version") for v in versions if isinstance(v, dict) and "version" in v]
+    valid = True
+
+    duplicates = {v for v in version_strings if version_strings.count(v) > 1}
+    if duplicates:
+        print(f"Error in {filepath}: Duplicate versions found: {sorted(duplicates)}")
+        valid = False
+
+    parseable = [v for v in version_strings if validate_semver(v)]
+    expected = sorted(parseable, key=semver_sort_key, reverse=True)
+    if parseable != expected:
+        print(f"Error in {filepath}: 'versions' must be sorted descending by semver (newest first)")
+        print(f"  Current order:  {parseable}")
+        print(f"  Expected order: {expected}")
+        valid = False
+
+    return valid
+
+def validate_requires(data, filepath):
+    """
+    Every plugin must declare the minimum Osaurus version at the top level:
+    either 'requires.osaurus_min_version' (external plugins) or 'min_osaurus'
+    (core tools, synced from the dylib manifest by regenerate-catalogs.py).
+    """
+    requires = data.get("requires")
+    if requires is not None and not isinstance(requires, dict):
+        print(f"Error in {filepath}: 'requires' must be a dictionary")
+        return False
+
+    if isinstance(requires, dict):
+        min_version = requires.get("osaurus_min_version")
+        field = "requires.osaurus_min_version"
+    else:
+        min_version = data.get("min_osaurus")
+        field = "min_osaurus"
+
+    if not isinstance(min_version, str) or not min_version:
+        print(f"Error in {filepath}: Missing top-level 'requires.osaurus_min_version' (or 'min_osaurus' for core tools)")
+        return False
+
+    if not validate_semver(min_version):
+        print(f"Error in {filepath}: Invalid {field} '{min_version}'")
+        return False
+
+    return True
+
 def validate_public_keys(public_keys, context):
     """Validate public_keys object contains valid minisign public key."""
     if not isinstance(public_keys, dict):
@@ -499,10 +565,16 @@ def validate_plugin_file(filepath, seen_ids):
         if not validate_docs(data["docs"], filepath):
             return False
 
+    if not validate_requires(data, filepath):
+        return False
+
     # Empty versions array is allowed for unreleased plugins
     if len(data["versions"]) == 0:
         print(f"  Note: No versions published yet for {plugin_id}")
         return True
+
+    if not validate_versions_order(data["versions"], filepath):
+        return False
 
     # Check if signature verification is enabled (via environment variable)
     verify_signatures = os.environ.get("VERIFY_SIGNATURES", "").lower() in ("1", "true", "yes")

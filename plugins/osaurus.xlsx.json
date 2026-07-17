@@ -64,81 +64,17 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
-      "release_date": "2026-02-09",
+      "version": "1.1.1",
+      "release_date": "2026-06-29",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.0/osaurus.xlsx-1.0.0-macos-arm64.zip",
-          "sha256": "a5dfd44901674591c6c451e0e42157a9abbc152dcf3e77ce9b28786db986dbb7",
+          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.1.1/osaurus.xlsx-1.1.1-macos-arm64.zip",
+          "sha256": "aad2764f28755c7aaaa019f395f8c63336fbf8485688b911ab32bf14da4852f2",
           "min_macos": "15.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViSYuEiwuIGZCpHNxSqK+TbEX0nrFbg87yz0AjpXHOyVTq+nj0htpFfiAW2SgvKX8I4gENHOstdBFoneODBvv0QE=\ntrusted comment: timestamp:1770642270\tfile:osaurus.xlsx-1.0.0-macos-arm64.zip\n4Yu/4xGf5/+GpSQwiN9jyX5JdUwddhrTxCsu6M3TWPhW4CkbC6EsuR19o6I0e+AnBZfPI12Ya+iJuoPwULpaBQ=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.1",
-      "release_date": "2026-02-09",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.1/osaurus.xlsx-1.0.1-macos-arm64.zip",
-          "sha256": "806bf0f0e6b2a72eda3ba216abdfcee962d49dde01fe63ffae7970ca1b7bf23c",
-          "min_macos": "15.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VicKCD6KiTbxAmJ9nvHI73iW0hzKlOJrDgq+Gx28mw94fxf8mCQIeDe0KTtPFXu0Bh2emCwWMzA6ztONjvjvE2w0=\ntrusted comment: timestamp:1770643738\tfile:osaurus.xlsx-1.0.1-macos-arm64.zip\nmaYDR+gm9O8LibfFbE5TaBrjMYS1PcSSDOqWPKMTXR2wv1hlK62hGhB4BsssMDb5AsAXbdLf0jGJuUAo0rWpBg=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.2",
-      "release_date": "2026-02-09",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.2/osaurus.xlsx-1.0.2-macos-arm64.zip",
-          "sha256": "802f3eef4f54a6280280ea6474d4b02de0263d1d6de84fab223fd6d7688c7d03",
-          "min_macos": "15.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VififbLJn+rk1sRWpB56WQxlWxrX1DN3I0fJCeUb4nrrIu/xiSLqyOuUtTU3AsgpiSc4kD8xCMGbv3FsHBJDdyAY=\ntrusted comment: timestamp:1770644957\tfile:osaurus.xlsx-1.0.2-macos-arm64.zip\nolJ5pZmzc1E8vdo4vx3qRogQGScGSoGQXTwL7+hlxMA/b9grfXUNOujTvVfNCtTd9BeCniSJfFEU0wYGGwEvAA=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.3",
-      "release_date": "2026-02-10",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.3/osaurus.xlsx-1.0.3-macos-arm64.zip",
-          "sha256": "33f7a246b621f48add8e769c89b17ba944639d5ff0200c9001706eaff2d09ec8",
-          "min_macos": "15.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViRYz/RpWTFK5tovyL0e9sq5O5z3mm7LwcqnNDYi65hPFtFVsYtyApxOpIOYQT/cLgHw50CnvcivzMnfXnIWDVw4=\ntrusted comment: timestamp:1770761212\tfile:osaurus.xlsx-1.0.3-macos-arm64.zip\n34NJhYUsizURmlts/wT34ZGOuqFHLUeVyD1Ftw2MaGiOc/7Tdzynld6Cp8qwtyrQsGnFwe5LMhE87nP9SYQcAw=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.4",
-      "release_date": "2026-02-10",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.4/osaurus.xlsx-1.0.4-macos-arm64.zip",
-          "sha256": "1b3341f4f1fdc755e5c4aafc2cbb5c8f3b83a956dc827a9d0de162cf3f6ab0cb",
-          "min_macos": "15.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VibcxwP9C3Iov3YW5JGlG9HTYSQ5QfEcZgvOqA+oBNNt0BaNmjLsfEiwr2tD4CKleB2u5CE4zn1boMrohhFk3ZwU=\ntrusted comment: timestamp:1770762250\tfile:osaurus.xlsx-1.0.4-macos-arm64.zip\nFhTb2SFWsY9BaV6ntkIH6HMEfJx3f6d0BZK8C06aZlzKcRDw8xmiSD3cc1RGXEfjyvx0i5DflUmJ6TaMx1k4DA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VibAOSIL3a4RLu/N0gRCTvashNCKaF2zyP50jNpHGXZbORAKZ9+SwMgiFLz9+TkLtHRna7WjlTyvVxRfwlXGCiQ8=\ntrusted comment: timestamp:1782761968\tfile:osaurus.xlsx-1.1.1-macos-arm64.zip\nvR6OeQZbkMq+LCO8I2TXNXmixIsbQvUpHHyuGK0Z9htAJrecNKtpHclRdwIgGY+jUZLHBhYN/bpkxmvUIn5dBQ=="
           }
         }
       ]
@@ -160,17 +96,81 @@
       ]
     },
     {
-      "version": "1.1.1",
-      "release_date": "2026-06-29",
+      "version": "1.0.4",
+      "release_date": "2026-02-10",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.1.1/osaurus.xlsx-1.1.1-macos-arm64.zip",
-          "sha256": "aad2764f28755c7aaaa019f395f8c63336fbf8485688b911ab32bf14da4852f2",
+          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.4/osaurus.xlsx-1.0.4-macos-arm64.zip",
+          "sha256": "1b3341f4f1fdc755e5c4aafc2cbb5c8f3b83a956dc827a9d0de162cf3f6ab0cb",
           "min_macos": "15.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VibAOSIL3a4RLu/N0gRCTvashNCKaF2zyP50jNpHGXZbORAKZ9+SwMgiFLz9+TkLtHRna7WjlTyvVxRfwlXGCiQ8=\ntrusted comment: timestamp:1782761968\tfile:osaurus.xlsx-1.1.1-macos-arm64.zip\nvR6OeQZbkMq+LCO8I2TXNXmixIsbQvUpHHyuGK0Z9htAJrecNKtpHclRdwIgGY+jUZLHBhYN/bpkxmvUIn5dBQ=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VibcxwP9C3Iov3YW5JGlG9HTYSQ5QfEcZgvOqA+oBNNt0BaNmjLsfEiwr2tD4CKleB2u5CE4zn1boMrohhFk3ZwU=\ntrusted comment: timestamp:1770762250\tfile:osaurus.xlsx-1.0.4-macos-arm64.zip\nFhTb2SFWsY9BaV6ntkIH6HMEfJx3f6d0BZK8C06aZlzKcRDw8xmiSD3cc1RGXEfjyvx0i5DflUmJ6TaMx1k4DA=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.3",
+      "release_date": "2026-02-10",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.3/osaurus.xlsx-1.0.3-macos-arm64.zip",
+          "sha256": "33f7a246b621f48add8e769c89b17ba944639d5ff0200c9001706eaff2d09ec8",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViRYz/RpWTFK5tovyL0e9sq5O5z3mm7LwcqnNDYi65hPFtFVsYtyApxOpIOYQT/cLgHw50CnvcivzMnfXnIWDVw4=\ntrusted comment: timestamp:1770761212\tfile:osaurus.xlsx-1.0.3-macos-arm64.zip\n34NJhYUsizURmlts/wT34ZGOuqFHLUeVyD1Ftw2MaGiOc/7Tdzynld6Cp8qwtyrQsGnFwe5LMhE87nP9SYQcAw=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "release_date": "2026-02-09",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.2/osaurus.xlsx-1.0.2-macos-arm64.zip",
+          "sha256": "802f3eef4f54a6280280ea6474d4b02de0263d1d6de84fab223fd6d7688c7d03",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VififbLJn+rk1sRWpB56WQxlWxrX1DN3I0fJCeUb4nrrIu/xiSLqyOuUtTU3AsgpiSc4kD8xCMGbv3FsHBJDdyAY=\ntrusted comment: timestamp:1770644957\tfile:osaurus.xlsx-1.0.2-macos-arm64.zip\nolJ5pZmzc1E8vdo4vx3qRogQGScGSoGQXTwL7+hlxMA/b9grfXUNOujTvVfNCtTd9BeCniSJfFEU0wYGGwEvAA=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "release_date": "2026-02-09",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.1/osaurus.xlsx-1.0.1-macos-arm64.zip",
+          "sha256": "806bf0f0e6b2a72eda3ba216abdfcee962d49dde01fe63ffae7970ca1b7bf23c",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VicKCD6KiTbxAmJ9nvHI73iW0hzKlOJrDgq+Gx28mw94fxf8mCQIeDe0KTtPFXu0Bh2emCwWMzA6ztONjvjvE2w0=\ntrusted comment: timestamp:1770643738\tfile:osaurus.xlsx-1.0.1-macos-arm64.zip\nmaYDR+gm9O8LibfFbE5TaBrjMYS1PcSSDOqWPKMTXR2wv1hlK62hGhB4BsssMDb5AsAXbdLf0jGJuUAo0rWpBg=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "release_date": "2026-02-09",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.0.0/osaurus.xlsx-1.0.0-macos-arm64.zip",
+          "sha256": "a5dfd44901674591c6c451e0e42157a9abbc152dcf3e77ce9b28786db986dbb7",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViSYuEiwuIGZCpHNxSqK+TbEX0nrFbg87yz0AjpXHOyVTq+nj0htpFfiAW2SgvKX8I4gENHOstdBFoneODBvv0QE=\ntrusted comment: timestamp:1770642270\tfile:osaurus.xlsx-1.0.0-macos-arm64.zip\n4Yu/4xGf5/+GpSQwiN9jyX5JdUwddhrTxCsu6M3TWPhW4CkbC6EsuR19o6I0e+AnBZfPI12Ya+iJuoPwULpaBQ=="
           }
         }
       ]
