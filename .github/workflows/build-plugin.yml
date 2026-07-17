@@ -111,6 +111,78 @@ jobs:
           echo "plugin_id=$PLUGIN_ID" >> $GITHUB_OUTPUT
           echo "Extracted plugin_id: $PLUGIN_ID"
 
+      - name: Lint manifest conformance
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Conformance gate: fail the release before signing/packaging when the
+          # extracted manifest would produce a broken or misversioned registry
+          # entry. No network access — pure static checks on the manifest JSON.
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import re
+          import sys
+
+          with open("build-data/manifest.json", "r", encoding="utf-8") as f:
+              manifest = json.load(f)
+          expected_version = os.environ["EXPECTED_VERSION"]
+
+          errors = []
+
+          version = manifest.get("version")
+          if not isinstance(version, str) or not version.strip():
+              errors.append("manifest 'version' is missing or empty")
+          elif version != expected_version:
+              errors.append(
+                  f"manifest version '{version}' does not match "
+                  f"tag-derived version '{expected_version}'"
+              )
+
+          plugin_id = manifest.get("plugin_id")
+          if not isinstance(plugin_id, str) or not re.fullmatch(
+              r"[a-z0-9]+(\.[a-z0-9_-]+)+", plugin_id
+          ):
+              errors.append(
+                  f"plugin_id {plugin_id!r} is malformed "
+                  "(expected lowercase dot-separated, e.g. 'osaurus.time')"
+              )
+
+          capabilities = manifest.get("capabilities") or {}
+
+          seen_tool_ids = set()
+          for index, tool in enumerate(capabilities.get("tools") or []):
+              if not isinstance(tool, dict):
+                  errors.append(f"tool at index {index} is not an object")
+                  continue
+              tool_id = tool.get("id")
+              if not isinstance(tool_id, str) or not tool_id.strip():
+                  errors.append(f"tool at index {index} has a missing or empty id")
+                  label = f"tool at index {index}"
+              else:
+                  label = f"tool '{tool_id}'"
+                  if tool_id in seen_tool_ids:
+                      errors.append(f"duplicate tool id '{tool_id}'")
+                  seen_tool_ids.add(tool_id)
+              description = tool.get("description")
+              if not isinstance(description, str) or not description.strip():
+                  errors.append(f"{label} lacks a description")
+
+          for index, route in enumerate(capabilities.get("routes") or []):
+              if (
+                  not isinstance(route, dict)
+                  or not isinstance(route.get("id"), str)
+                  or not route["id"].strip()
+              ):
+                  errors.append(f"route at index {index} lacks an id")
+
+          if errors:
+              for error in errors:
+                  print(f"::error::manifest conformance: {error}")
+              sys.exit(1)
+          print("Manifest conformance lint passed")
+          PYEOF
+
       - name: Detect skills
         id: skills
         run: |
