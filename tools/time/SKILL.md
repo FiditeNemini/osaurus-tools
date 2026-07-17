@@ -3,7 +3,7 @@ name: osaurus-time
 description: Teaches the agent how to use the time tools — current time, timezone conversion, parsing dates, formatting, date arithmetic.
 metadata:
   author: Osaurus
-  version: "2.0.0"
+  version: "2.0.5"
 ---
 
 # Time
