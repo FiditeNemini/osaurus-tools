@@ -79,6 +79,9 @@ class TestArtifactVerification(unittest.TestCase):
         finally:
             os.unlink(path)
 
+    def test_key_rotation_allowlist_removed(self):
+        self.assertFalse(hasattr(validate, "KEY_ROTATION_ALLOWLIST"))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
