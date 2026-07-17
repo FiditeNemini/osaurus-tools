@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import hashlib
 import json
 import os
 import sys
@@ -179,9 +180,10 @@ def check_public_key_immutability(filepath, current_public_key):
         return True
 
 def verify_artifact_signature(artifact, public_key, context):
-    """Download artifact and verify minisign signature against public key."""
+    """Download artifact and verify sha256 checksum and minisign signature."""
     url = artifact["url"]
     signature = artifact["minisign"]["signature"]
+    expected_sha256 = artifact["sha256"].lower()
     
     # Create temporary directory for verification
     tmpdir = tempfile.mkdtemp(prefix="osaurus_verify_")
@@ -192,9 +194,22 @@ def verify_artifact_signature(artifact, public_key, context):
         try:
             urllib.request.urlretrieve(url, artifact_path)
         except Exception as e:
-            print(f"  Warning in {context}: Could not download artifact for signature verification: {e}")
-            print(f"  Skipping signature verification (artifact unreachable)")
-            return True  # Don't fail on unreachable artifacts (might be new release not yet published)
+            print(f"Error in {context}: Could not download artifact for signature verification: {e}")
+            print(f"  Unreachable artifacts are a validation failure when VERIFY_SIGNATURES is enabled")
+            return False
+        
+        # Verify sha256 of the downloaded artifact matches the registry value
+        sha256 = hashlib.sha256()
+        with open(artifact_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                sha256.update(chunk)
+        actual_sha256 = sha256.hexdigest()
+        if actual_sha256 != expected_sha256:
+            print(f"Error in {context}: SHA256 mismatch for downloaded artifact")
+            print(f"  Registry sha256: {expected_sha256}")
+            print(f"  Actual sha256:   {actual_sha256}")
+            return False
+        print(f"  SHA256 verified for {os.path.basename(url)}")
         
         # Write public key file (minisign format requires specific format)
         pubkey_path = os.path.join(tmpdir, "minisign.pub")
