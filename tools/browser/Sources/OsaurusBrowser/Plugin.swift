@@ -1674,8 +1674,7 @@ func normalizeBrowserResult(_ result: String) -> String {
         trimmed.lowercased().hasPrefix("error:")
     {
         let msg = String(trimmed.dropFirst(6)).trimmingCharacters(in: .whitespaces)
-        return
-            "{\"ok\":false,\"kind\":\"execution_error\",\"message\":\"\(escapeJSON(msg.isEmpty ? trimmed : msg))\",\"retryable\":true}"
+        return failureEnvelope(message: msg.isEmpty ? trimmed : msg)
     }
 
     // JSON object: leave anything that already carries an `ok` flag (canonical
@@ -1697,12 +1696,28 @@ func normalizeBrowserResult(_ result: String) -> String {
     } else {
         message = "Tool error"
     }
-    let kind =
-        message.localizedCaseInsensitiveContains("invalid argument")
+    return failureEnvelope(message: message)
+}
+
+/// Classify a failure message into the canonical envelope. Deterministic
+/// failures (`invalid_args`, `not_found`) are not retryable — retrying the
+/// same call cannot succeed; transient execution errors are.
+private func failureEnvelope(message: String) -> String {
+    let kind: String
+    if message.localizedCaseInsensitiveContains("invalid argument")
         || message.localizedCaseInsensitiveContains("required:")
-        ? "invalid_args" : "execution_error"
+    {
+        kind = "invalid_args"
+    } else if message.localizedCaseInsensitiveContains("unknown tool")
+        || message.localizedCaseInsensitiveContains("unknown capability")
+    {
+        kind = "not_found"
+    } else {
+        kind = "execution_error"
+    }
+    let retryable = kind == "execution_error"
     return
-        "{\"ok\":false,\"kind\":\"\(kind)\",\"message\":\"\(escapeJSON(message))\",\"retryable\":true}"
+        "{\"ok\":false,\"kind\":\"\(kind)\",\"message\":\"\(escapeJSON(message))\",\"retryable\":\(retryable)}"
 }
 
 func toJSONString(_ value: Any?) -> String {
@@ -2819,6 +2834,7 @@ private var api: osr_plugin_api = {
             {
               "plugin_id": "osaurus.browser",
               "name": "Browser",
+              "version": "2.0.2",
               "description": "Agent-friendly headless WebKit browser. Element refs from snapshots, batched actions, console & network inspection, dialog handling, viewport / UA control, cookies, and a cooperative lock for multi-agent safety.",
               "license": "MIT",
               "authors": ["Osaurus Team"],
