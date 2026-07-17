@@ -1,3 +1,4 @@
+import OsaurusPluginABI
 import XCTest
 
 @testable import OsaurusBrowser

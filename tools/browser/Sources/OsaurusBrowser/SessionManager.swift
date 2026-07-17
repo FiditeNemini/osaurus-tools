@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import OsaurusPluginABI
 import WebKit
 
 /// Per-agent browser session manager.
