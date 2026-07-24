@@ -34,6 +34,22 @@
   },
   "versions": [
     {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.1.0/osaurus.messages-1.1.0-macos-arm64.zip",
+          "sha256": "714d4408b0d0df7bd66640048d01801d33e21ca9fad7c17937536ef56378101e",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BEh+Xyfpume6yCU0OunwDuAl8Yeqdx3F5UTqps9Os+bRdVw3eHId3QdLlp4Ah/iBu4UgAPCH6cbB7oTDcTOt1w8=\ntrusted comment: timestamp:1784866237\tfile:osaurus.messages-1.1.0-macos-arm64.zip\n1yp3tc4qZB/7Tn/hYO4FbI7Z4CLISQnvYNCT+E8s8nODUo5DUEk1khquX6qqxX3hYPI06dzXo51oX615Gt75AQ=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.0.8",
       "release_date": "2026-06-29",
       "artifacts": [
