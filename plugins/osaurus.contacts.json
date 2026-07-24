@@ -36,6 +36,22 @@
   },
   "versions": [
     {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-contacts/releases/download/1.1.0/osaurus.contacts-1.1.0-macos-arm64.zip",
+          "sha256": "27952e61c2cc09ba5bb77a21499118be05e97b3c37c58a02e18e14092ba1612f",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6Vif7IRiwIV5pjV65KQ7J9VvxpVgDasMYyCtYLTe2PLBjcLf/PJyot4psSKTuo5pz6jK+lTjlpYP/1Wye1sBcFhQA=\ntrusted comment: timestamp:1784866433\tfile:osaurus.contacts-1.1.0-macos-arm64.zip\npHjx0q/8BA5HuSKbMqYborRzFtWN/+120hTeNj19BtG614EEOXRJecTkUr//KvueKiBUArrjjKPtITUYeQ2KDA=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.0.4",
       "release_date": "2026-06-29",
       "artifacts": [
