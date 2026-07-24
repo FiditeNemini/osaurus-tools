@@ -52,7 +52,7 @@
         "name": "get_presentation_info"
       },
       {
-        "description": "Save a presentation as a .pptx file to the workspace.",
+        "description": "Save a presentation as a .pptx file to the workspace. Images whose source files are missing or unreadable are dropped from the deck and reported in the skipped_images field of the result.",
         "name": "save_presentation"
       }
     ],
@@ -71,6 +71,22 @@
     "osaurus_min_version": "0.5.0"
   },
   "versions": [
+    {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-pptx/releases/download/1.1.0/osaurus.pptx-1.1.0-macos-arm64.zip",
+          "sha256": "425ecb7447d718f468bb3cd0e454c725d870ad2b1d8c05d6185c757b4fab1a4d",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViVkNu44or5t+jSdO23pYhCP718uk2ASyy7N2piLkig1dxkdreLDrfiv32I5pZt08q2WCdz/FnMfCi6eEvKbO9As=\ntrusted comment: timestamp:1784867044\tfile:osaurus.pptx-1.1.0-macos-arm64.zip\njfAv8rt698dpOufHdQJyockwn1h7F/7iHbbt4NPS57vPrVqTkULHJe5EOaPC0fZT9ctQA9Wk4f4Pf8HnTXKSBg=="
+          }
+        }
+      ]
+    },
     {
       "version": "1.0.4",
       "release_date": "2026-06-29",
