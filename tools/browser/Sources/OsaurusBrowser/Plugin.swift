@@ -2775,7 +2775,7 @@ private var pluginAPI: OsrPluginAPI = PluginEntry.makeAPI(
             {
               "plugin_id": "osaurus.browser",
               "name": "Browser",
-              "version": "2.0.2",
+              "version": "2.1.0",
               "description": "Agent-friendly headless WebKit browser. Element refs from snapshots, batched actions, console & network inspection, dialog handling, viewport / UA control, cookies, and a cooperative lock for multi-agent safety.",
               "license": "MIT",
               "authors": ["Osaurus Team"],

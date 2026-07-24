@@ -1251,7 +1251,7 @@ private var pluginAPI: OsrPluginAPI = PluginEntry.makeAPI(
             {
               "plugin_id": "osaurus.fetch",
               "name": "Fetch",
-              "version": "2.0.0",
+              "version": "2.1.0",
               "description": "HTTP client with SSRF protection, response size limits, and Readability-style HTML extraction.",
               "license": "MIT",
               "authors": ["Osaurus Team"],
