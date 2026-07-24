@@ -3,7 +3,7 @@ name: osaurus-browser
 description: Teaches the agent how to use the headless browser tools — per-agent persistent sessions, the open_login helper, refs, batching, detail levels, console/network inspection, dialogs, viewport/UA, cookies, and lock/unlock for multi-agent safety.
 metadata:
   author: Osaurus
-  version: "2.0.0"
+  version: "2.0.2"
 ---
 
 # Osaurus Browser

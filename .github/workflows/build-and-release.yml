@@ -3,19 +3,17 @@ name: Build and Release Plugin
 on:
   push:
     tags:
-      # Match tags like: time-1.0.0, git-1.0.0
+      # Match tags like: fetch-1.0.0, browser-1.0.0
       - "*-*.*.*"
   workflow_dispatch:
     inputs:
       tool:
-        description: "Tool to build (time, browser, fetch, search, all)"
+        description: "Tool to build (browser, fetch, all)"
         required: true
         type: choice
         options:
-          - time
           - browser
           - fetch
-          - search
           - all
       version:
         description: "Version (e.g., 1.0.0)"
@@ -51,7 +49,7 @@ jobs:
             TOOL="${{ github.event.inputs.tool }}"
             VERSION="${{ github.event.inputs.version }}"
           else
-            # Parse from tag: tool-version (e.g., time-1.0.0)
+            # Parse from tag: tool-version (e.g., fetch-1.0.0)
             TAG="${GITHUB_REF#refs/tags/}"
             TOOL="${TAG%%-*}"
             VERSION="${TAG#*-}"
@@ -126,6 +124,7 @@ jobs:
 
           cd "$TOOL_DIR"
           swift build -c release
+          swift test
 
           # Find the built dylib
           DYLIB=$(ls .build/release/*.dylib 2>/dev/null | head -1)
@@ -176,6 +175,78 @@ jobs:
           echo "Extracted plugin_id: $PLUGIN_ID"
           echo "Full manifest:"
           echo "$MANIFEST" | jq .
+
+      - name: Lint manifest conformance
+        env:
+          MANIFEST: ${{ steps.extract.outputs.manifest }}
+          EXPECTED_VERSION: ${{ steps.parse.outputs.version }}
+        run: |
+          # Conformance gate: fail the release before signing/packaging when the
+          # extracted manifest would produce a broken or misversioned registry
+          # entry. No network access — pure static checks on the manifest JSON.
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import re
+          import sys
+
+          manifest = json.loads(os.environ["MANIFEST"])
+          expected_version = os.environ["EXPECTED_VERSION"]
+
+          errors = []
+
+          version = manifest.get("version")
+          if not isinstance(version, str) or not version.strip():
+              errors.append("manifest 'version' is missing or empty")
+          elif version != expected_version:
+              errors.append(
+                  f"manifest version '{version}' does not match "
+                  f"tag-derived version '{expected_version}'"
+              )
+
+          plugin_id = manifest.get("plugin_id")
+          if not isinstance(plugin_id, str) or not re.fullmatch(
+              r"[a-z0-9]+(\.[a-z0-9_-]+)+", plugin_id
+          ):
+              errors.append(
+                  f"plugin_id {plugin_id!r} is malformed "
+                  "(expected lowercase dot-separated, e.g. 'osaurus.fetch')"
+              )
+
+          capabilities = manifest.get("capabilities") or {}
+
+          seen_tool_ids = set()
+          for index, tool in enumerate(capabilities.get("tools") or []):
+              if not isinstance(tool, dict):
+                  errors.append(f"tool at index {index} is not an object")
+                  continue
+              tool_id = tool.get("id")
+              if not isinstance(tool_id, str) or not tool_id.strip():
+                  errors.append(f"tool at index {index} has a missing or empty id")
+                  label = f"tool at index {index}"
+              else:
+                  label = f"tool '{tool_id}'"
+                  if tool_id in seen_tool_ids:
+                      errors.append(f"duplicate tool id '{tool_id}'")
+                  seen_tool_ids.add(tool_id)
+              description = tool.get("description")
+              if not isinstance(description, str) or not description.strip():
+                  errors.append(f"{label} lacks a description")
+
+          for index, route in enumerate(capabilities.get("routes") or []):
+              if (
+                  not isinstance(route, dict)
+                  or not isinstance(route.get("id"), str)
+                  or not route["id"].strip()
+              ):
+                  errors.append(f"route at index {index} lacks an id")
+
+          if errors:
+              for error in errors:
+                  print(f"::error::manifest conformance: {error}")
+              sys.exit(1)
+          print("Manifest conformance lint passed")
+          PYEOF
 
       - name: Code sign dylib
         env:
@@ -535,15 +606,17 @@ jobs:
           REGISTRY_FILE="plugins/${PLUGIN_ID}.json"
 
           if [ -f "$REGISTRY_FILE" ]; then
-            # Merge capabilities (tools, skills, routes), docs, skill content, and prepend new version
+            # Merge capabilities (tools, skills, routes), docs, skill content, and prepend new version.
+            # Dedupe by version while preserving newest-first order (unique_by would
+            # re-sort the array lexicographically, breaking semver-descending order).
             jq --slurpfile new /tmp/registry-manifest.json '
               .capabilities.tools = $new[0].capabilities.tools |
               if ($new[0].capabilities | has("skills")) then .capabilities.skills = $new[0].capabilities.skills else . end |
               if ($new[0].capabilities | has("routes")) then .capabilities.routes = $new[0].capabilities.routes else . end |
               if ($new[0] | has("skill")) then .skill = $new[0].skill else . end |
               if ($new[0] | has("docs")) then .docs = $new[0].docs else . end |
-              .versions = [$new[0].versions[0]] + .versions |
-              .versions |= unique_by(.version)
+              .versions = ([$new[0].versions[0]] + .versions
+                | reduce .[] as $v ([]; if any(.[]; .version == $v.version) then . else . + [$v] end))
             ' "$REGISTRY_FILE" > /tmp/updated.json && mv /tmp/updated.json "$REGISTRY_FILE"
           else
             # Use the generated manifest as-is for new plugins

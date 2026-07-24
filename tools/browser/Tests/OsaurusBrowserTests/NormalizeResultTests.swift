@@ -20,7 +20,9 @@ final class NormalizeResultTests: XCTestCase {
         let dict = try XCTUnwrap(parse(out))
         XCTAssertEqual(dict["ok"] as? Bool, false)
         XCTAssertEqual(dict["kind"] as? String, "invalid_args")
-        XCTAssertEqual(dict["retryable"] as? Bool, true)
+        XCTAssertEqual(
+            dict["retryable"] as? Bool, false,
+            "invalid_args is deterministic — retrying the same call cannot succeed")
         XCTAssertEqual(dict["message"] as? String, "Invalid arguments. Required: url")
     }
 
@@ -30,6 +32,7 @@ final class NormalizeResultTests: XCTestCase {
         let dict = try XCTUnwrap(parse(out))
         XCTAssertEqual(dict["ok"] as? Bool, false)
         XCTAssertEqual(dict["kind"] as? String, "execution_error")
+        XCTAssertEqual(dict["retryable"] as? Bool, true)
         XCTAssertEqual(dict["message"] as? String, "boom happened")
     }
 
@@ -38,7 +41,16 @@ final class NormalizeResultTests: XCTestCase {
         let dict = try XCTUnwrap(parse(out))
         XCTAssertEqual(dict["ok"] as? Bool, false)
         XCTAssertEqual(dict["kind"] as? String, "execution_error")
+        XCTAssertEqual(dict["retryable"] as? Bool, true)
         XCTAssertEqual(dict["message"] as? String, "something went wrong")
+    }
+
+    func test_unknownToolBecomesNonRetryableNotFound() throws {
+        let out = normalizeBrowserResult("{\"error\": \"Unknown tool: browser_frobnicate\"}")
+        let dict = try XCTUnwrap(parse(out))
+        XCTAssertEqual(dict["ok"] as? Bool, false)
+        XCTAssertEqual(dict["kind"] as? String, "not_found")
+        XCTAssertEqual(dict["retryable"] as? Bool, false)
     }
 
     func test_canonicalSuccessEnvelopeUntouched() {

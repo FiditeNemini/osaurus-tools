@@ -1,4 +1,6 @@
 import Foundation
+import OsaurusPluginABI
+import OsaurusPluginKit
 
 #if canImport(Darwin)
     import Darwin
@@ -6,24 +8,25 @@ import Foundation
 
 // MARK: - Response Envelope
 
+/// Success envelope built on the SDK's `Envelope.success(fields:)`; the
+/// `{ok, data}` success shape is this plugin's pinned wire format.
 @inline(__always)
 func okResponse(_ data: [String: Any], warnings: [String] = []) -> String {
-    var payload: [String: Any] = ["ok": true, "data": data]
-    if !warnings.isEmpty { payload["warnings"] = warnings }
-    return jsonString(payload)
+    var fields: [String: Any] = ["data": data]
+    if !warnings.isEmpty { fields["warnings"] = warnings }
+    return Envelope.success(fields: fields)
 }
 
+/// Legacy `{ok:false, error:{code, message, hint?}}` failure shape. Predates
+/// the SDK's canonical failure envelope and is pinned by the test suite /
+/// existing agents, so it stays local.
 @inline(__always)
 func errorResponse(code: String, message: String, hint: String? = nil) -> String {
     var error: [String: Any] = ["code": code, "message": message]
     if let hint = hint { error["hint"] = hint }
-    return jsonString(["ok": false, "error": error])
-}
-
-func jsonString(_ obj: Any) -> String {
-    guard JSONSerialization.isValidJSONObject(obj),
+    guard
         let data = try? JSONSerialization.data(
-            withJSONObject: obj,
+            withJSONObject: ["ok": false, "error": error] as [String: Any],
             options: [.sortedKeys, .withoutEscapingSlashes]
         ),
         let str = String(data: data, encoding: .utf8)
@@ -226,20 +229,28 @@ struct MultipartField: Decodable {
 
 // MARK: - HTTP delegate (redirect tracking, byte cap, protocol detection)
 
+let kMaxRedirects = 10
+
 final class FetchDelegate: NSObject, URLSessionDataDelegate, URLSessionTaskDelegate {
     var redirectChain: [String] = []
     var collected = Data()
     var truncated = false
     let maxBytes: Int
     let followRedirects: Bool
+    let allowPrivate: Bool
     var protocolName: String?
     private let semaphore = DispatchSemaphore(value: 0)
     var taskError: Error?
+    /// Set when a redirect target fails the SSRF guard or the redirect count
+    /// is exceeded. Checked before `taskError` so the structured reason wins
+    /// over the generic "cancelled" error produced by aborting the task.
+    var redirectBlockError: ToolError?
     var response: HTTPURLResponse?
 
-    init(maxBytes: Int, followRedirects: Bool = true) {
+    init(maxBytes: Int, followRedirects: Bool = true, allowPrivate: Bool = false) {
         self.maxBytes = maxBytes
         self.followRedirects = followRedirects
+        self.allowPrivate = allowPrivate
     }
 
     func wait(timeout: TimeInterval) {
@@ -259,7 +270,37 @@ final class FetchDelegate: NSObject, URLSessionDataDelegate, URLSessionTaskDeleg
         // Honor `follow_redirects: false`. Returning nil to the completion
         // handler stops the redirect; the original 3xx response is delivered
         // and `taskError` stays nil.
-        completionHandler(followRedirects ? request : nil)
+        guard followRedirects else {
+            completionHandler(nil)
+            return
+        }
+        if redirectChain.count > kMaxRedirects {
+            redirectBlockError = ToolError(
+                code: "TOO_MANY_REDIRECTS",
+                message: "Stopped after \(kMaxRedirects) redirects"
+            )
+            completionHandler(nil)
+            task.cancel()
+            return
+        }
+        // Re-run the SSRF guard on every redirect target. Without this, a
+        // public URL could 302 into 127.0.0.1 / 169.254.169.254 / RFC1918
+        // space and bypass the initial-URL check.
+        if let target = request.url {
+            let check = checkSSRF(url: target, allowPrivate: allowPrivate)
+            if !check.allowed {
+                redirectBlockError = ToolError(
+                    code: "SSRF_BLOCKED",
+                    message:
+                        "Redirect to '\(target.absoluteString)' blocked: \(check.reason ?? "SSRF guard rejected the host")",
+                    hint: "Set 'allow_private': true to bypass (use only for trusted local URLs)."
+                )
+                completionHandler(nil)
+                task.cancel()
+                return
+            }
+        }
+        completionHandler(request)
     }
 
     func urlSession(
@@ -330,7 +371,8 @@ func executeRequest(
     body: RequestBody,
     timeout: TimeInterval,
     maxBytes: Int,
-    followRedirects: Bool
+    followRedirects: Bool,
+    allowPrivate: Bool = false
 ) throws -> HTTPResult {
     var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
     request.httpMethod = method.uppercased()
@@ -404,7 +446,11 @@ func executeRequest(
         request.setValue(v, forHTTPHeaderField: k)
     }
 
-    let delegate = FetchDelegate(maxBytes: maxBytes, followRedirects: followRedirects)
+    let delegate = FetchDelegate(
+        maxBytes: maxBytes,
+        followRedirects: followRedirects,
+        allowPrivate: allowPrivate
+    )
     let config = URLSessionConfiguration.ephemeral
     config.httpMaximumConnectionsPerHost = 4
     let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
@@ -412,6 +458,10 @@ func executeRequest(
     task.resume()
     delegate.wait(timeout: timeout + 5)
     session.invalidateAndCancel()
+
+    if let blocked = delegate.redirectBlockError {
+        throw blocked
+    }
 
     if let err = delegate.taskError {
         let nserr = err as NSError
@@ -530,7 +580,10 @@ func resolveDownloadTarget(requestedFilename: String?, url: URL) throws -> URL {
         .standardizedFileURL
     let target = downloadsDir.appendingPathComponent(candidate).standardizedFileURL
 
-    if !target.path.hasPrefix(downloadsDir.path + "/") {
+    // Component-aware, symlink-resolving containment re-check via the SDK.
+    // A bare filename can never equal the directory itself, so "contained"
+    // here always means a strict descendant of ~/Downloads.
+    if !PathSafety.isContained(target.path, in: downloadsDir.path) || target.path == downloadsDir.path {
         throw ToolError(
             code: "DOWNLOAD_PATH_INVALID",
             message: "Resolved path '\(target.path)' is outside ~/Downloads",
@@ -646,7 +699,8 @@ struct FetchTool {
             body: try bodyFromArgs(parsed),
             timeout: parsed.timeout ?? 30,
             maxBytes: parsed.max_bytes ?? 10 * 1024 * 1024,
-            followRedirects: parsed.follow_redirects ?? true
+            followRedirects: parsed.follow_redirects ?? true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         return [
@@ -684,7 +738,8 @@ struct FetchJSONTool {
             body: try bodyFromArgs(parsed),
             timeout: parsed.timeout ?? 30,
             maxBytes: parsed.max_bytes ?? 10 * 1024 * 1024,
-            followRedirects: parsed.follow_redirects ?? true
+            followRedirects: parsed.follow_redirects ?? true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         var data: [String: Any] = [
@@ -741,7 +796,8 @@ struct FetchHTMLTool {
             body: .none,
             timeout: parsed.timeout ?? 30,
             maxBytes: parsed.max_bytes ?? 10 * 1024 * 1024,
-            followRedirects: parsed.follow_redirects ?? true
+            followRedirects: parsed.follow_redirects ?? true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         guard let html = String(data: result.body, encoding: .utf8) else {
@@ -808,7 +864,8 @@ struct DownloadTool {
             body: .none,
             timeout: parsed.timeout ?? 60,
             maxBytes: parsed.max_bytes ?? 100 * 1024 * 1024,
-            followRedirects: true
+            followRedirects: true,
+            allowPrivate: parsed.allow_private ?? false
         )
 
         let target = try resolveDownloadTarget(
@@ -1177,54 +1234,24 @@ private final class PluginContext {
 
 // MARK: - C ABI
 
-private typealias osr_plugin_ctx_t = UnsafeMutableRawPointer
-private typealias osr_free_string_t = @convention(c) (UnsafePointer<CChar>?) -> Void
-private typealias osr_init_t = @convention(c) () -> osr_plugin_ctx_t?
-private typealias osr_destroy_t = @convention(c) (osr_plugin_ctx_t?) -> Void
-private typealias osr_get_manifest_t = @convention(c) (osr_plugin_ctx_t?) -> UnsafePointer<CChar>?
-private typealias osr_invoke_t =
-    @convention(c) (
-        osr_plugin_ctx_t?,
-        UnsafePointer<CChar>?,
-        UnsafePointer<CChar>?,
-        UnsafePointer<CChar>?
-    ) -> UnsafePointer<CChar>?
-
-private struct osr_plugin_api {
-    var free_string: osr_free_string_t?
-    var `init`: osr_init_t?
-    var destroy: osr_destroy_t?
-    var get_manifest: osr_get_manifest_t?
-    var invoke: osr_invoke_t?
-}
-
-private func makeCString(_ s: String) -> UnsafePointer<CChar>? {
-    guard let ptr = strdup(s) else { return nil }
-    return UnsafePointer(ptr)
-}
-
-private var api: osr_plugin_api = {
-    var api = osr_plugin_api()
-
-    api.free_string = { ptr in
-        if let p = ptr { free(UnsafeMutableRawPointer(mutating: p)) }
-    }
-
-    api.`init` = {
+/// Plugin API table built by the SDK. Stable file-scope storage — the host
+/// keeps the pointer returned from the entry points.
+private var pluginAPI: OsrPluginAPI = PluginEntry.makeAPI(
+    version: OsrABIVersion.v2,
+    init: {
         let ctx = PluginContext()
         return Unmanaged.passRetained(ctx).toOpaque()
-    }
-
-    api.destroy = { ctxPtr in
+    },
+    destroy: { ctxPtr in
         guard let ctxPtr = ctxPtr else { return }
         Unmanaged<PluginContext>.fromOpaque(ctxPtr).release()
-    }
-
-    api.get_manifest = { _ in
+    },
+    getManifest: { _ in
         let manifest = """
             {
               "plugin_id": "osaurus.fetch",
               "name": "Fetch",
+              "version": "2.0.0",
               "description": "HTTP client with SSRF protection, response size limits, and Readability-style HTML extraction.",
               "license": "MIT",
               "authors": ["Osaurus Team"],
@@ -1270,10 +1297,9 @@ private var api: osr_plugin_api = {
               }
             }
             """
-        return makeCString(manifest)
-    }
-
-    api.invoke = { ctxPtr, typePtr, idPtr, payloadPtr in
+        return osrMakeCString(manifest)
+    },
+    invoke: { ctxPtr, typePtr, idPtr, payloadPtr in
         guard let ctxPtr = ctxPtr,
             let typePtr = typePtr,
             let idPtr = idPtr,
@@ -1286,7 +1312,7 @@ private var api: osr_plugin_api = {
         let payload = String(cString: payloadPtr)
 
         guard type == "tool" else {
-            return makeCString(
+            return osrMakeCString(
                 errorResponse(
                     code: "UNKNOWN_CAPABILITY",
                     message: "This plugin only handles 'tool' invocations, got '\(type)'."
@@ -1303,7 +1329,7 @@ private var api: osr_plugin_api = {
             case FetchHTMLTool.name: data = try ctx.fetchHTMLTool.run(args: payload)
             case DownloadTool.name: data = try ctx.downloadTool.run(args: payload)
             default:
-                return makeCString(
+                return osrMakeCString(
                     errorResponse(
                         code: "UNKNOWN_TOOL",
                         message: "Unknown tool: '\(id)'.",
@@ -1317,13 +1343,19 @@ private var api: osr_plugin_api = {
         } catch {
             result = errorResponse(code: "INTERNAL", message: error.localizedDescription)
         }
-        return makeCString(result)
+        return osrMakeCString(result)
     }
+)
 
-    return api
-}()
-
+/// Legacy v1 entry — kept for old hosts that don't probe the v2 symbol.
 @_cdecl("osaurus_plugin_entry")
 public func osaurus_plugin_entry() -> UnsafeRawPointer? {
-    return UnsafeRawPointer(&api)
+    PluginEntry.enterV1(api: &pluginAPI)
+}
+
+/// V2 entry — the host tries this first and passes its API table, which the
+/// SDK captures into `HostBridge.shared` before returning the plugin table.
+@_cdecl("osaurus_plugin_entry_v2")
+public func osaurus_plugin_entry_v2(_ host: UnsafeRawPointer?) -> UnsafeRawPointer? {
+    PluginEntry.enterV2(host, api: &pluginAPI)
 }

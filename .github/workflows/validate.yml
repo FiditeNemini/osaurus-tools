@@ -31,9 +31,10 @@ jobs:
             exit 0
           fi
 
-          # Extract plugin_id and latest version from the changed file
+          # Extract plugin_id and latest version from the changed file.
+          # Select the semver max explicitly rather than trusting array order.
           PLUGIN_ID=$(jq -r '.plugin_id' "$CHANGED")
-          VERSION=$(jq -r '.versions[0].version' "$CHANGED")
+          VERSION=$(jq -r '.versions[].version' "$CHANGED" | sort -V | tail -n 1)
 
           echo "plugin_id=$PLUGIN_ID" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -116,11 +117,13 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Build all plugins
+      - name: Build and test all plugins
         run: |
-          for tool in time browser fetch search; do
+          for tool in browser fetch; do
             echo "Building $tool..."
             cd tools/$tool
             swift build -c release
+            echo "Testing $tool..."
+            swift test
             cd ../..
           done

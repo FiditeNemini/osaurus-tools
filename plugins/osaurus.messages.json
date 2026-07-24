@@ -28,52 +28,23 @@
   "public_keys": {
     "minisign": "RWTBzaXEFjz7BFKd+ZtOWrNQ6/eO5EJ/PlZvg1DsVtYq+BQ3/XSBSXII"
   },
+  "requires": {
+    "min_macos": "13.0",
+    "osaurus_min_version": "0.5.0"
+  },
   "versions": [
     {
-      "version": "1.0.3",
-      "release_date": "2025-12-25",
+      "version": "1.0.8",
+      "release_date": "2026-06-29",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "min_macos": "13.0",
-          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.3/osaurus.messages-1.0.3.zip",
-          "sha256": "8a61ce939b28ca3102469a976353cc08e985fb1e7ba05aafa4be26161ddedb21",
-          "size": 41141,
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BP/VsuBexoRHxfD/myNPelNRYvBpKdVjfMQ6XCb4SBgBDKwDZ3B/NA7pgIWaS/v2c3+ogI7VKJ6uIcl0zF9BJQ0=\ntrusted comment: timestamp:1766666676\tfile:osaurus.messages-1.0.3.zip\ndnS+tBf8oU4xiTqHZLibdbRgj0vpBfge+f+bGQbirfR+ZD2kwsgcD2qpp0SM02TPHyzpXZx1h9nYrNP6fSsDBA=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.4",
-      "release_date": "2026-01-27",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.4/osaurus.messages-1.0.4-macos-arm64.zip",
-          "sha256": "33ff9e6d6ec6cfdc62563c43345717159108cce7496df1c2c5572b96c352c2ea",
+          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.8/osaurus.messages-1.0.8-macos-arm64.zip",
+          "sha256": "8f3212cfb3e0ac5f71b3d5097c694ff4d55bed1cf12a058dab0bde4c71558ea5",
           "min_macos": "13.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BD0LpG0RDxiTEuSSfsDl10LfBFoE9Y6e9Bg3dpVOfKNpts91LHo5dSQccjrLNKrvnPNpdZ2P2FnEnbcwLFzIhgA=\ntrusted comment: timestamp:1769504811\tfile:osaurus.messages-1.0.4-macos-arm64.zip\nCXiS5KzVmgwkYsL/9vxOSI8Nerjjhsah7tWR9woG73U9gXGEZw65cVc+sYhsIWeZwwhmdgEH+xqQTiljtLkJAg=="
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.5",
-      "release_date": "2026-02-07",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.5/osaurus.messages-1.0.5-macos-arm64.zip",
-          "sha256": "0a16f75d6a99b0edf83b1108d7a72787685a9ec0391f9ba80a34c0e98bbc8b7c",
-          "min_macos": "13.0",
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BP1c6Lu0mVX4ta1BdWmRnEa59zrbrIYxeF38soG1Uvvi0q3yY0CtV5bqIojF/NrAxIj9N5cVGPNhiw3E3hDwAgY=\ntrusted comment: timestamp:1770476196\tfile:osaurus.messages-1.0.5-macos-arm64.zip\n2WYyN8SAF859jnF6FDWqKORXv7qoC+air+UgqJCEewZiTykv/DYZV6ZByzcg8r5OS6q+4VEBcfSJwHoADKVeCQ=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BNjSGcvUW8amhCtQt31I72OGUOvLPd+tx4WbruCLOap2R4AsrnJTJMO0VPcOnLz4jP884DvpsZBCe3NMrxF1jQA=\ntrusted comment: timestamp:1782761615\tfile:osaurus.messages-1.0.8-macos-arm64.zip\nydP25EUb6luUms4zdylyY/0GRJfjfz4zoZujlFh89Mn6IIamR1/1QOzgqv8RBwPt9zLKnnXWoh4aqbqAe9ypAA=="
           }
         }
       ]
@@ -95,17 +66,50 @@
       ]
     },
     {
-      "version": "1.0.8",
-      "release_date": "2026-06-29",
+      "version": "1.0.5",
+      "release_date": "2026-02-07",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.8/osaurus.messages-1.0.8-macos-arm64.zip",
-          "sha256": "8f3212cfb3e0ac5f71b3d5097c694ff4d55bed1cf12a058dab0bde4c71558ea5",
+          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.5/osaurus.messages-1.0.5-macos-arm64.zip",
+          "sha256": "0a16f75d6a99b0edf83b1108d7a72787685a9ec0391f9ba80a34c0e98bbc8b7c",
           "min_macos": "13.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BNjSGcvUW8amhCtQt31I72OGUOvLPd+tx4WbruCLOap2R4AsrnJTJMO0VPcOnLz4jP884DvpsZBCe3NMrxF1jQA=\ntrusted comment: timestamp:1782761615\tfile:osaurus.messages-1.0.8-macos-arm64.zip\nydP25EUb6luUms4zdylyY/0GRJfjfz4zoZujlFh89Mn6IIamR1/1QOzgqv8RBwPt9zLKnnXWoh4aqbqAe9ypAA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BP1c6Lu0mVX4ta1BdWmRnEa59zrbrIYxeF38soG1Uvvi0q3yY0CtV5bqIojF/NrAxIj9N5cVGPNhiw3E3hDwAgY=\ntrusted comment: timestamp:1770476196\tfile:osaurus.messages-1.0.5-macos-arm64.zip\n2WYyN8SAF859jnF6FDWqKORXv7qoC+air+UgqJCEewZiTykv/DYZV6ZByzcg8r5OS6q+4VEBcfSJwHoADKVeCQ=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.4",
+      "release_date": "2026-01-27",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.4/osaurus.messages-1.0.4-macos-arm64.zip",
+          "sha256": "33ff9e6d6ec6cfdc62563c43345717159108cce7496df1c2c5572b96c352c2ea",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BD0LpG0RDxiTEuSSfsDl10LfBFoE9Y6e9Bg3dpVOfKNpts91LHo5dSQccjrLNKrvnPNpdZ2P2FnEnbcwLFzIhgA=\ntrusted comment: timestamp:1769504811\tfile:osaurus.messages-1.0.4-macos-arm64.zip\nCXiS5KzVmgwkYsL/9vxOSI8Nerjjhsah7tWR9woG73U9gXGEZw65cVc+sYhsIWeZwwhmdgEH+xqQTiljtLkJAg=="
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.3",
+      "release_date": "2025-12-25",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "min_macos": "13.0",
+          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.0.3/osaurus.messages-1.0.3.zip",
+          "sha256": "8a61ce939b28ca3102469a976353cc08e985fb1e7ba05aafa4be26161ddedb21",
+          "size": 41141,
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BP/VsuBexoRHxfD/myNPelNRYvBpKdVjfMQ6XCb4SBgBDKwDZ3B/NA7pgIWaS/v2c3+ogI7VKJ6uIcl0zF9BJQ0=\ntrusted comment: timestamp:1766666676\tfile:osaurus.messages-1.0.3.zip\ndnS+tBf8oU4xiTqHZLibdbRgj0vpBfge+f+bGQbirfR+ZD2kwsgcD2qpp0SM02TPHyzpXZx1h9nYrNP6fSsDBA=="
           }
         }
       ]

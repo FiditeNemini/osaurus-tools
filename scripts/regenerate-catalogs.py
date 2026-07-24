@@ -21,7 +21,7 @@
 #   scripts/regenerate-catalogs.py            # Rewrite all catalog files
 #   scripts/regenerate-catalogs.py --check    # Exit 1 if any catalog is
 #                                             # out-of-sync (CI mode)
-#   scripts/regenerate-catalogs.py --tool time
+#   scripts/regenerate-catalogs.py --tool fetch
 #                                             # Limit to a single tool
 #
 # Exit codes:

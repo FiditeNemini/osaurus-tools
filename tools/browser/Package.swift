@@ -7,9 +7,16 @@ let package = Package(
     products: [
         .library(name: "OsaurusBrowser", type: .dynamic, targets: ["OsaurusBrowser"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/osaurus-ai/osaurus-plugin-sdk.git", exact: "1.0.0")
+    ],
     targets: [
         .target(
             name: "OsaurusBrowser",
+            dependencies: [
+                .product(name: "OsaurusPluginABI", package: "osaurus-plugin-sdk"),
+                .product(name: "OsaurusPluginKit", package: "osaurus-plugin-sdk"),
+            ],
             path: "Sources/OsaurusBrowser",
             linkerSettings: [
                 .linkedFramework("WebKit"),
@@ -18,7 +25,10 @@ let package = Package(
         ),
         .testTarget(
             name: "OsaurusBrowserTests",
-            dependencies: ["OsaurusBrowser"],
+            dependencies: [
+                "OsaurusBrowser",
+                .product(name: "OsaurusPluginTestSupport", package: "osaurus-plugin-sdk"),
+            ],
             path: "Tests/OsaurusBrowserTests",
             resources: [.copy("Fixtures")]
         ),

@@ -20,13 +20,13 @@ Lightweight HTTP client for grounding agent work in real web content. Hardened b
 ## When NOT to use
 
 - Pages that need login, JavaScript rendering, or interaction → use `osaurus.browser`.
-- Web search → use `osaurus.search` (then feed top URLs to `fetch_html`).
+- Web search → use the host's built-in `web_search` (then feed top URLs to `fetch_html`).
 - Reaching localhost / `127.0.0.1` / private LAN IPs → blocked by SSRF guard. Set `allow_private: true` only if the user explicitly asked for it.
 
 ## Canonical workflow
 
 ```text
-1. osaurus.search.search(query)           → list of URLs
+1. web_search(query)                      → list of URLs
 2. osaurus.fetch.fetch_html(url)          → { markdown, title, byline, ... }
 3. Reason over the markdown
 ```

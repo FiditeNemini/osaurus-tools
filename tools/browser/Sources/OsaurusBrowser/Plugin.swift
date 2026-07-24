@@ -1,5 +1,7 @@
 import AppKit
 import Foundation
+import OsaurusPluginABI
+import OsaurusPluginKit
 import WebKit
 
 // MARK: - Detail Level
@@ -1674,8 +1676,7 @@ func normalizeBrowserResult(_ result: String) -> String {
         trimmed.lowercased().hasPrefix("error:")
     {
         let msg = String(trimmed.dropFirst(6)).trimmingCharacters(in: .whitespaces)
-        return
-            "{\"ok\":false,\"kind\":\"execution_error\",\"message\":\"\(escapeJSON(msg.isEmpty ? trimmed : msg))\",\"retryable\":true}"
+        return failureEnvelope(message: msg.isEmpty ? trimmed : msg)
     }
 
     // JSON object: leave anything that already carries an `ok` flag (canonical
@@ -1697,12 +1698,27 @@ func normalizeBrowserResult(_ result: String) -> String {
     } else {
         message = "Tool error"
     }
-    let kind =
-        message.localizedCaseInsensitiveContains("invalid argument")
+    return failureEnvelope(message: message)
+}
+
+/// Classify a failure message into the SDK's canonical envelope. Deterministic
+/// failures (`invalid_args`, `not_found`) are not retryable — retrying the
+/// same call cannot succeed; transient execution errors are (the SDK's
+/// default retryable policy per kind matches this exactly).
+private func failureEnvelope(message: String) -> String {
+    let kind: Envelope.Kind
+    if message.localizedCaseInsensitiveContains("invalid argument")
         || message.localizedCaseInsensitiveContains("required:")
-        ? "invalid_args" : "execution_error"
-    return
-        "{\"ok\":false,\"kind\":\"\(kind)\",\"message\":\"\(escapeJSON(message))\",\"retryable\":true}"
+    {
+        kind = .invalidArgs
+    } else if message.localizedCaseInsensitiveContains("unknown tool")
+        || message.localizedCaseInsensitiveContains("unknown capability")
+    {
+        kind = .notFound
+    } else {
+        kind = .executionError
+    }
+    return Envelope.failure(kind, message)
 }
 
 func toJSONString(_ value: Any?) -> String {
@@ -1900,29 +1916,14 @@ func formatSnapshotOutput(_ data: [String: Any], detail: DetailLevel) -> String 
 class PluginContext {
     /// Returns the plugin manifest JSON string for testing
     static func getManifestJSON() -> String {
-        // Trigger the manifest generation through the C ABI
-        let entryPtr = osaurus_plugin_entry()
-        guard let ptr = entryPtr else { return "{}" }
+        // Trigger the manifest generation through the C ABI, reading the
+        // table through the SDK's typed `OsrPluginAPI` mirror.
+        guard let entryPtr = osaurus_plugin_entry() else { return "{}" }
+        let api = entryPtr.assumingMemoryBound(to: OsrPluginAPI.self).pointee
 
-        // The api struct has 5 function pointers in order:
-        // free_string, init, destroy, get_manifest, invoke
-        let apiBase = ptr.assumingMemoryBound(to: Optional<UnsafeRawPointer>.self)
-
-        // get_manifest is at offset 3
-        guard let getManifestRaw = apiBase.advanced(by: 3).pointee else { return "{}" }
-
-        typealias GetManifestFn = @convention(c) (UnsafeMutableRawPointer?) -> UnsafePointer<CChar>?
-        let getManifest = unsafeBitCast(getManifestRaw, to: GetManifestFn.self)
-
-        guard let cStr = getManifest(nil) else { return "{}" }
+        guard let cStr = api.get_manifest?(nil) else { return "{}" }
         let result = String(cString: cStr)
-
-        // free_string is at offset 0
-        if let freeStringRaw = apiBase.advanced(by: 0).pointee {
-            typealias FreeStringFn = @convention(c) (UnsafePointer<CChar>?) -> Void
-            let freeString = unsafeBitCast(freeStringRaw, to: FreeStringFn.self)
-            freeString(cStr)
-        }
+        api.free_string?(cStr)
 
         return result
     }
@@ -2529,8 +2530,10 @@ class PluginContext {
     // The legacy tools above retain their pre-2.0.0 plain-text snapshot output
     // for back-compat with the existing test suite.
 
+    /// Success side built on the SDK's `Envelope.success(fields:)`; the
+    /// `{ok, data}` success shape is this plugin's pinned wire format.
     private func envelopeOK(_ data: [String: Any]) -> String {
-        return jsonEnvelope(["ok": true, "data": data])
+        return Envelope.success(fields: ["data": data])
     }
 
     private func envelopeError(_ code: String, _ message: String, hint: String? = nil) -> String {
@@ -2748,77 +2751,31 @@ struct AnyJSON: Decodable {
 
 // MARK: - C ABI
 
-private typealias osr_plugin_ctx_t = UnsafeMutableRawPointer
-private typealias osr_free_string_t = @convention(c) (UnsafePointer<CChar>?) -> Void
-private typealias osr_init_t = @convention(c) () -> osr_plugin_ctx_t?
-private typealias osr_destroy_t = @convention(c) (osr_plugin_ctx_t?) -> Void
-private typealias osr_get_manifest_t = @convention(c) (osr_plugin_ctx_t?) -> UnsafePointer<CChar>?
-private typealias osr_invoke_t =
-    @convention(c) (
-        osr_plugin_ctx_t?,
-        UnsafePointer<CChar>?,
-        UnsafePointer<CChar>?,
-        UnsafePointer<CChar>?
-    ) -> UnsafePointer<CChar>?
-private typealias osr_handle_route_t =
-    @convention(c) (osr_plugin_ctx_t?, UnsafePointer<CChar>?) -> UnsafePointer<CChar>?
-private typealias osr_on_config_changed_t =
-    @convention(c) (osr_plugin_ctx_t?, UnsafePointer<CChar>?, UnsafePointer<CChar>?) -> Void
-private typealias osr_on_task_event_t =
-    @convention(c) (osr_plugin_ctx_t?, UnsafePointer<CChar>?, Int32, UnsafePointer<CChar>?) -> Void
-
-/// Layout-compatible mirror of `osr_plugin_api` from osaurus_plugin.h.
-/// V2 trailing fields are present even when unused so Osaurus reads
-/// `version = 2` correctly and detects the ABI level.
-private struct osr_plugin_api {
-    var free_string: osr_free_string_t?
-    var `init`: osr_init_t?
-    var destroy: osr_destroy_t?
-    var get_manifest: osr_get_manifest_t?
-    var invoke: osr_invoke_t?
-    // v2 fields
-    var version: UInt32 = 0
-    var handle_route: osr_handle_route_t?
-    var on_config_changed: osr_on_config_changed_t?
-    var on_task_event: osr_on_task_event_t?
-}
-
-private func makeCString(_ s: String) -> UnsafePointer<CChar>? {
-    guard let ptr = strdup(s) else { return nil }
-    return UnsafePointer(ptr)
-}
-
-private var api: osr_plugin_api = {
-    var api = osr_plugin_api()
-
-    // Declare ABI v2 so Osaurus reads the trailing fields. The route /
-    // task-event handlers stay null because this plugin doesn't use them;
-    // ABI v2 still gives us per-agent-scoped config_get / config_set on the
-    // host side, which SessionManager relies on for profile_id storage.
-    api.version = 2
-
-    api.free_string = { ptr in
-        if let p = ptr { free(UnsafeMutableRawPointer(mutating: p)) }
-    }
-
-    api.`init` = {
+/// Plugin API table built by the SDK's `PluginEntry.makeAPI`. Declares ABI v2
+/// so Osaurus reads the trailing fields; the route / task-event handlers stay
+/// null because this plugin doesn't use them. ABI v2 still gives us
+/// per-agent-scoped config_get / config_set on the host side, which
+/// SessionManager relies on for profile_id storage. Stable file-scope storage
+/// — the host keeps the pointer returned from the entry points.
+private var pluginAPI: OsrPluginAPI = PluginEntry.makeAPI(
+    version: OsrABIVersion.v2,
+    init: {
         let ctx = PluginContext()
         return Unmanaged.passRetained(ctx).toOpaque()
-    }
-
-    api.destroy = { ctxPtr in
+    },
+    destroy: { ctxPtr in
         // Tear down every pooled per-agent browser before the plugin is
         // unloaded so WebKit releases its data stores cleanly.
         SessionManager.shared.shutdownAll()
         guard let ctxPtr = ctxPtr else { return }
         Unmanaged<PluginContext>.fromOpaque(ctxPtr).release()
-    }
-
-    api.get_manifest = { _ in
+    },
+    getManifest: { _ in
         let manifest = """
             {
               "plugin_id": "osaurus.browser",
               "name": "Browser",
+              "version": "2.0.2",
               "description": "Agent-friendly headless WebKit browser. Element refs from snapshots, batched actions, console & network inspection, dialog handling, viewport / UA control, cookies, and a cooperative lock for multi-agent safety.",
               "license": "MIT",
               "authors": ["Osaurus Team"],
@@ -3169,10 +3126,9 @@ private var api: osr_plugin_api = {
               }
             }
             """
-        return makeCString(manifest)
-    }
-
-    api.invoke = { ctxPtr, typePtr, idPtr, payloadPtr in
+        return osrMakeCString(manifest)
+    },
+    invoke: { ctxPtr, typePtr, idPtr, payloadPtr in
         guard let ctxPtr = ctxPtr,
             let typePtr = typePtr,
             let idPtr = idPtr,
@@ -3185,7 +3141,7 @@ private var api: osr_plugin_api = {
         let payload = String(cString: payloadPtr)
 
         guard type == "tool" else {
-            return makeCString(
+            return osrMakeCString(
                 normalizeBrowserResult("{\"error\": \"Unknown capability type\"}"))
         }
 
@@ -3239,26 +3195,21 @@ private var api: osr_plugin_api = {
         // Single normalization boundary: rewrite bare {"error":...} / "Error:"
         // results into the canonical failure envelope so the host classifies
         // them as failures instead of auto-wrapping them as successes.
-        return makeCString(normalizeBrowserResult(result))
+        return osrMakeCString(normalizeBrowserResult(result))
     }
+)
 
-    return api
-}()
-
+/// Legacy v1 entry — kept for old hosts that don't probe the v2 symbol.
 @_cdecl("osaurus_plugin_entry")
 public func osaurus_plugin_entry() -> UnsafeRawPointer? {
-    return UnsafeRawPointer(&api)
+    PluginEntry.enterV1(api: &pluginAPI)
 }
 
 /// V2 entry point. Osaurus tries this symbol first; if present it passes the
 /// host API struct so the plugin can call back into the host for config
-/// (per-agent keychain), logging, etc. We capture the host API into the
-/// shared `HostBridge` and return the same plugin API as v1.
+/// (per-agent keychain), logging, etc. The SDK captures the host API into the
+/// shared `HostBridge` and returns the same plugin API as v1.
 @_cdecl("osaurus_plugin_entry_v2")
 public func osaurus_plugin_entry_v2(_ host: UnsafeRawPointer?) -> UnsafeRawPointer? {
-    if let host = host {
-        let ptr = host.assumingMemoryBound(to: osr_host_api.self)
-        HostBridge.shared.install(api: ptr.pointee)
-    }
-    return UnsafeRawPointer(&api)
+    PluginEntry.enterV2(host, api: &pluginAPI)
 }

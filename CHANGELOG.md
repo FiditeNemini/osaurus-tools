@@ -3,6 +3,41 @@
 All notable changes to the official Osaurus core tools and registry. Per-plugin
 release notes live in each tool's own `tools/<tool>/CHANGELOG.md`.
 
+> **Correction (2026-07-16):** the "Notes on signing" section below documents
+> the November 2025 key as the current registry public key, but the minisign
+> keypair has since been rotated again (April 2026). The current registry
+> public key for the four core tools is
+> `RWTmCafy0+6ViS/ZFdYN+4v3ATECbUamgj4WDgGz7R2/DD1UEHp1eXwt` — always treat
+> `public_keys.minisign` in `plugins/<id>.json` as the source of truth. The
+> original text is preserved unchanged below.
+
+## Registry update (2026-07-17) — time, search, and macos-use retired
+
+### Removed
+
+- **`osaurus.macos-use`** — superseded by the host app's built-in Computer Use
+  subagent (Osaurus 0.20.5+), whose native macOS driver was brought in-core
+  from `osaurus-ai/osaurus-macos-use`. The built-in surface covers the
+  plugin's GUI automation (windows, elements, input, screenshots, sessions)
+  with host-managed Accessibility / Screen Recording permission flows and
+  per-agent gating.
+- **`osaurus.time`** — superseded by the host app's built-in `get_current_time`
+  tool (Osaurus 0.22.0+). The plugin's date-arithmetic extras (`format_date`,
+  `parse_date`, `convert_timezone`, `add_duration`, `diff_dates`,
+  `list_timezones`) saw little agent use; models handle this reasoning inline
+  once they have the current time.
+- **`osaurus.search`** — superseded by the host app's native web search
+  (`web_search`, `search_and_extract`, Osaurus 0.22.0+), which ships the same
+  pluggable provider stack (free scraping by default, Tavily / Brave / Serper /
+  Google CSE / Kagi / You.com via API key) with provider settings in the
+  Search tab. The host migrates plugin-configured API keys automatically.
+
+The catalog files for all three plugins have been deleted from `plugins/`,
+matching the `osaurus.filesystem` / `osaurus.git` retirement in 2.0.0: existing
+GitHub release artifacts remain reachable by direct URL and installed copies
+keep working, but the plugins are no longer discoverable or installable through
+the registry.
+
 ## 2.0.0 — Coordinated core-tools overhaul
 
 This release reshapes the official core-tools surface around what an agent

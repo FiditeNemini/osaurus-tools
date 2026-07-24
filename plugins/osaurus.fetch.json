@@ -35,33 +35,18 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
-      "release_date": "2025-11-25",
+      "version": "2.0.0",
+      "release_date": "2026-04-22",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.0/osaurus.fetch-1.0.0.zip",
-          "sha256": "90c3f5220675591690d7227cd66d209dd320240c68f6b3d4945dddc16e8827d7",
-          "size": 38450,
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-2.0.0/osaurus.fetch-2.0.0-macos-arm64.zip",
+          "sha256": "911733b3340cdd68ec477cd1b83c23c5521993f0f2979486f78e0c3580306929",
+          "size": 99818,
+          "min_macos": "13.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VifTdb1JPO1BDo++9JM3yWYXL+SfjmElvzdDxQqzLI0R17k3+YcsiP1qimFQ7eWeg2ntxFtpxJmdKpQF0Ux1JfQQ=\ntrusted comment: file:osaurus.fetch-1.0.0.zip\nqR65B7a7z6airMA9bQS8yh8wnRvw8LAwHHff98y4rdkwmu5IbjMnnkxpRWwYuVquu7WelAqsS33ZL1k4dRdgBw==\n"
-          }
-        }
-      ]
-    },
-    {
-      "version": "1.0.1",
-      "release_date": "2025-11-30",
-      "artifacts": [
-        {
-          "os": "macos",
-          "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.1/osaurus.fetch-1.0.1.zip",
-          "sha256": "bb5738cd383924fcba563a755fa1ca5fae7b8170aafdb46b9f5a103ab512294b",
-          "size": 38736,
-          "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViQFk45br/CotUovYv0zGG5R6F0EcGwcVFWMmI1dPeKjdEitVrwW3YaWiavOYR/FBkYcAO3V7B7p/wznxTbEfvgA=\ntrusted comment: file:osaurus.fetch-1.0.1.zip\nzK0R5jeKNI+M1ykhfQCZhDnVHs7iQ61UTACDsBmGBF3awDkhq/TVa7u2fp09S71YBlovwD5UwF2/skZTyC2zBw==\n"
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViauJ+X83/gBnLI6fKCQQ7sKqwCTBLrcELpzi1tVZAQlZsYn57o1p9ZodHW94hgTTY7zGNql9+0nbImTv2g7oYQQ=\ntrusted comment: timestamp:1776897179\tfile:osaurus.fetch-2.0.0-macos-arm64.zip\nhfaplcKkWAWxPnDFxyprfwHqD7xk4RIpo/zijr4yAd0khfqbiKqOg0/KOCIBcBShmDi2LsYNxZjhlbBTopyaAA=="
           }
         }
       ]
@@ -83,18 +68,33 @@
       ]
     },
     {
-      "version": "2.0.0",
-      "release_date": "2026-04-22",
+      "version": "1.0.1",
+      "release_date": "2025-11-30",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-2.0.0/osaurus.fetch-2.0.0-macos-arm64.zip",
-          "sha256": "911733b3340cdd68ec477cd1b83c23c5521993f0f2979486f78e0c3580306929",
-          "size": 99818,
-          "min_macos": "13.0",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.1/osaurus.fetch-1.0.1.zip",
+          "sha256": "bb5738cd383924fcba563a755fa1ca5fae7b8170aafdb46b9f5a103ab512294b",
+          "size": 38736,
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViauJ+X83/gBnLI6fKCQQ7sKqwCTBLrcELpzi1tVZAQlZsYn57o1p9ZodHW94hgTTY7zGNql9+0nbImTv2g7oYQQ=\ntrusted comment: timestamp:1776897179\tfile:osaurus.fetch-2.0.0-macos-arm64.zip\nhfaplcKkWAWxPnDFxyprfwHqD7xk4RIpo/zijr4yAd0khfqbiKqOg0/KOCIBcBShmDi2LsYNxZjhlbBTopyaAA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViQFk45br/CotUovYv0zGG5R6F0EcGwcVFWMmI1dPeKjdEitVrwW3YaWiavOYR/FBkYcAO3V7B7p/wznxTbEfvgA=\ntrusted comment: file:osaurus.fetch-1.0.1.zip\nzK0R5jeKNI+M1ykhfQCZhDnVHs7iQ61UTACDsBmGBF3awDkhq/TVa7u2fp09S71YBlovwD5UwF2/skZTyC2zBw==\n"
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "release_date": "2025-11-25",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-1.0.0/osaurus.fetch-1.0.0.zip",
+          "sha256": "90c3f5220675591690d7227cd66d209dd320240c68f6b3d4945dddc16e8827d7",
+          "size": 38450,
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6VifTdb1JPO1BDo++9JM3yWYXL+SfjmElvzdDxQqzLI0R17k3+YcsiP1qimFQ7eWeg2ntxFtpxJmdKpQF0Ux1JfQQ=\ntrusted comment: file:osaurus.fetch-1.0.0.zip\nqR65B7a7z6airMA9bQS8yh8wnRvw8LAwHHff98y4rdkwmu5IbjMnnkxpRWwYuVquu7WelAqsS33ZL1k4dRdgBw==\n"
           }
         }
       ]
@@ -105,7 +105,7 @@
   },
   "min_macos": "13.0",
   "min_osaurus": "0.5.0",
-  "skill": "---\nname: osaurus-fetch\ndescription: Teaches the agent how to use the HTTP fetch tools — JSON APIs, Readability HTML extraction, file downloads, with built-in SSRF and size limits.\nmetadata:\n  author: Osaurus\n  version: \"2.0.0\"\n---\n\n# Fetch\n\nLightweight HTTP client for grounding agent work in real web content. Hardened by default: SSRF guard blocks private IPs, response size capped at 10 MB, downloads sandboxed to `~/Downloads`.\n\n## When to use\n\n- Calling a public JSON API (`fetch_json`).\n- Reading the *content* of a static page or article (`fetch_html` returns Markdown).\n- Saving a file to disk (`download`).\n- Anything where the page does not require JavaScript execution or a real browser session.\n\n## When NOT to use\n\n- Pages that need login, JavaScript rendering, or interaction → use `osaurus.browser`.\n- Web search → use `osaurus.search` (then feed top URLs to `fetch_html`).\n- Reaching localhost / `127.0.0.1` / private LAN IPs → blocked by SSRF guard. Set `allow_private: true` only if the user explicitly asked for it.\n\n## Canonical workflow\n\n```text\n1. osaurus.search.search(query)           → list of URLs\n2. osaurus.fetch.fetch_html(url)          → { markdown, title, byline, ... }\n3. Reason over the markdown\n```\n\nOr for APIs:\n\n```text\n1. osaurus.fetch.fetch_json(url, headers, body)\n2. data is already parsed JSON in the response\n```\n\n## Output envelope\n\n```json\n{\n  \"ok\": true,\n  \"data\": {\n    \"status\": 200,\n    \"final_url\": \"https://example.com/after/redirects\",\n    \"redirect_chain\": [\"https://t.co/abc\", \"https://example.com/...\"],\n    \"protocol_version\": \"h2\",\n    \"headers\": { \"content-type\": \"...\" },\n    \"body\": \"...\",                     // fetch only\n    \"json\": { ... },                   // fetch_json only\n    \"markdown\": \"...\", \"title\": \"...\", // fetch_html only\n    \"truncated\": false\n  }\n}\n{ \"ok\": false, \"error\": { \"code\": \"...\", \"message\": \"...\", \"hint\": \"...\" } }\n```\n\nCommon error codes: `INVALID_ARGS`, `SSRF_BLOCKED`, `TIMEOUT`, `RESPONSE_TOO_LARGE`, `HTTP_ERROR`, `EXTRACTION_FAILED`, `DOWNLOAD_PATH_INVALID`.\n\n## Tips\n\n- For long pages, prefer `fetch_html` over `fetch` — the Readability extractor returns clean Markdown a model can actually use, while `fetch` returns the raw HTML body.\n- `auth: { type: \"bearer\", token: \"...\" }` is a shortcut for an `Authorization` header — use it instead of constructing headers manually.\n- `download` rejects path separators, `..`, and absolute paths in `filename`. Pass a plain filename only.\n- `max_bytes` caps the in-memory response. Default 10 MB. If you hit `truncated: true`, your data is incomplete.",
+  "skill": "---\nname: osaurus-fetch\ndescription: Teaches the agent how to use the HTTP fetch tools — JSON APIs, Readability HTML extraction, file downloads, with built-in SSRF and size limits.\nmetadata:\n  author: Osaurus\n  version: \"2.0.0\"\n---\n\n# Fetch\n\nLightweight HTTP client for grounding agent work in real web content. Hardened by default: SSRF guard blocks private IPs, response size capped at 10 MB, downloads sandboxed to `~/Downloads`.\n\n## When to use\n\n- Calling a public JSON API (`fetch_json`).\n- Reading the *content* of a static page or article (`fetch_html` returns Markdown).\n- Saving a file to disk (`download`).\n- Anything where the page does not require JavaScript execution or a real browser session.\n\n## When NOT to use\n\n- Pages that need login, JavaScript rendering, or interaction → use `osaurus.browser`.\n- Web search → use the host's built-in `web_search` (then feed top URLs to `fetch_html`).\n- Reaching localhost / `127.0.0.1` / private LAN IPs → blocked by SSRF guard. Set `allow_private: true` only if the user explicitly asked for it.\n\n## Canonical workflow\n\n```text\n1. web_search(query)                      → list of URLs\n2. osaurus.fetch.fetch_html(url)          → { markdown, title, byline, ... }\n3. Reason over the markdown\n```\n\nOr for APIs:\n\n```text\n1. osaurus.fetch.fetch_json(url, headers, body)\n2. data is already parsed JSON in the response\n```\n\n## Output envelope\n\n```json\n{\n  \"ok\": true,\n  \"data\": {\n    \"status\": 200,\n    \"final_url\": \"https://example.com/after/redirects\",\n    \"redirect_chain\": [\"https://t.co/abc\", \"https://example.com/...\"],\n    \"protocol_version\": \"h2\",\n    \"headers\": { \"content-type\": \"...\" },\n    \"body\": \"...\",                     // fetch only\n    \"json\": { ... },                   // fetch_json only\n    \"markdown\": \"...\", \"title\": \"...\", // fetch_html only\n    \"truncated\": false\n  }\n}\n{ \"ok\": false, \"error\": { \"code\": \"...\", \"message\": \"...\", \"hint\": \"...\" } }\n```\n\nCommon error codes: `INVALID_ARGS`, `SSRF_BLOCKED`, `TIMEOUT`, `RESPONSE_TOO_LARGE`, `HTTP_ERROR`, `EXTRACTION_FAILED`, `DOWNLOAD_PATH_INVALID`.\n\n## Tips\n\n- For long pages, prefer `fetch_html` over `fetch` — the Readability extractor returns clean Markdown a model can actually use, while `fetch` returns the raw HTML body.\n- `auth: { type: \"bearer\", token: \"...\" }` is a shortcut for an `Authorization` header — use it instead of constructing headers manually.\n- `download` rejects path separators, `..`, and absolute paths in `filename`. Pass a plain filename only.\n- `max_bytes` caps the in-memory response. Default 10 MB. If you hit `truncated: true`, your data is incomplete.",
   "docs": {
     "changelog": "CHANGELOG.md"
   }

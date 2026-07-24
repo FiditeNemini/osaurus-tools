@@ -6,19 +6,15 @@ Central registry for community tools and plugins for [Osaurus](https://github.co
 
 | Plugin ID         | Description                                                                                                                                                            | Tools                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `osaurus.time`    | Date and time arithmetic across timezones                                                                                                                              | `current_time`, `format_date`, `parse_date`, `convert_timezone`, `add_duration`, `diff_dates`, `list_timezones`                                                                                                                                                                                                                                                                                                                                                    |
 | `osaurus.fetch`   | HTTP client with SSRF guard, response size limits, and Readability-style HTML extraction                                                                               | `fetch`, `fetch_json`, `fetch_html`, `download`                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `osaurus.search`  | Web search via pluggable backends (free scraping by default; Tavily / Brave / Serper / Google CSE / Kagi / You.com via API key)                                        | `search`, `search_news`, `search_images`, `search_and_extract`                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `osaurus.browser` | Agent-friendly headless WebKit browser with **per-agent persistent sessions** (cookies / localStorage survive across runs and stay isolated per agent), agent-triggered sign-in window, ARIA-YAML snapshots, console/network inspection, dialogs, viewport/UA control, cookies, and a cooperative lock | `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_select`, `browser_hover`, `browser_scroll`, `browser_do`, `browser_press_key`, `browser_wait_for`, `browser_screenshot`, `browser_execute_script`, `browser_console_messages`, `browser_network_requests`, `browser_handle_dialog`, `browser_set_viewport`, `browser_set_user_agent`, `browser_cookies`, `browser_lock`, `browser_open_login`, `browser_reset_session` |
 
-> Filesystem and Git operations are first-class in the host app via the working-folder context (and the sandbox VM for shell). The `osaurus.filesystem` and `osaurus.git` plugins were removed in `2.0.0` — see [CHANGELOG.md](CHANGELOG.md).
+> Filesystem and Git operations are first-class in the host app via the working-folder context (and the sandbox VM for shell). The `osaurus.filesystem` and `osaurus.git` plugins were removed in `2.0.0`. The `osaurus.time`, `osaurus.search`, and `osaurus.macos-use` plugins were retired in July 2026 in favor of the host's built-ins: `get_current_time`, native web search (`web_search`, `search_and_extract`), and the Computer Use subagent — see [CHANGELOG.md](CHANGELOG.md).
 
 ### Installation
 
 ```bash
-osaurus tools install osaurus.time
 osaurus tools install osaurus.fetch
-osaurus tools install osaurus.search
 osaurus tools install osaurus.browser
 ```
 
@@ -428,7 +424,7 @@ osaurus manifest extract build/time/staging/*.dylib | jq .
 
    ```bash
    ./scripts/build-tool.sh mytool --version 1.0.0
-   osaurus tools install ./build/mytool/osaurus.mytool-1.0.0.zip
+   osaurus tools install ./build/mytool/osaurus.mytool-1.0.0-macos-arm64.zip
    ```
 
    The build script automatically includes `SKILL.md`, `README.md`, `CHANGELOG.md`, and `web/` in the zip if they exist in the tool directory.
@@ -447,9 +443,14 @@ git push origin --tags
 
 The GitHub Actions workflow will:
 
-1. Build the plugin for macOS arm64
+1. Build and test the plugin for macOS arm64
 2. Create a GitHub Release with the artifact
 3. Open a PR to update the registry JSON
+
+This in-repo release workflow (`build-and-release.yml`) requires the same
+signing secrets as external plugins plus a `GH_PAT` secret (GitHub PAT used to
+open the registry update PR). Note the different name: external plugin repos
+calling the reusable `build-plugin.yml` workflow use `REGISTRY_PAT` instead.
 
 ## License
 

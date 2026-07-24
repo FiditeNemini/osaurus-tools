@@ -78,17 +78,17 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
-      "release_date": "2026-02-04",
+      "version": "1.0.2",
+      "release_date": "2026-06-29",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-vision/releases/download/1.0.0/osaurus.vision-1.0.0-macos-arm64.zip",
-          "sha256": "9713fea7d6cdaf2bd16c83dfef7fa4649b1209724ae9d71fc335ad959b5ff8a2",
+          "url": "https://github.com/osaurus-ai/osaurus-vision/releases/download/1.0.2/osaurus.vision-1.0.2-macos-arm64.zip",
+          "sha256": "437dcc678c0892629d63a500cee364e94b93ebd08c14805d5e19a647e4c24132",
           "min_macos": "15.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6Vic7NAMdo5DDG8teedOHSvVt9xsS5ZOMCneQyBOYetwTM2iTxfGZC6RoktDciRIcQ9YVCIs9KGRL6a2xWqKAfoAc=\ntrusted comment: timestamp:1770231204\tfile:osaurus.vision-1.0.0-macos-arm64.zip\ngtBJ/ETcpvl6dWSLtfXe7lNu7EDZaKzZDqgiVX3ZJQ0kTXZe+zlp82OaKnbPbay9csKZyMysgZrEHpWO4+ggCA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViTHzOyqFwk8pIby8ODb4z00tOuH1pSqtZ4haKdzqwhl2tZR9319aLWfscRSEm0K4yUOW0fT0pZWqQq2gojgAygU=\ntrusted comment: timestamp:1782762236\tfile:osaurus.vision-1.0.2-macos-arm64.zip\n60RGGWb3cUAmvmE5PLqOiADhegGrCtFcFCsd4xmFgbYHW17eJhEHEpEHeBH+ZH57ayhNW/6HY5hZ1bZqjVVxAA=="
           }
         }
       ]
@@ -110,17 +110,17 @@
       ]
     },
     {
-      "version": "1.0.2",
-      "release_date": "2026-06-29",
+      "version": "1.0.0",
+      "release_date": "2026-02-04",
       "artifacts": [
         {
           "os": "macos",
           "arch": "arm64",
-          "url": "https://github.com/osaurus-ai/osaurus-vision/releases/download/1.0.2/osaurus.vision-1.0.2-macos-arm64.zip",
-          "sha256": "437dcc678c0892629d63a500cee364e94b93ebd08c14805d5e19a647e4c24132",
+          "url": "https://github.com/osaurus-ai/osaurus-vision/releases/download/1.0.0/osaurus.vision-1.0.0-macos-arm64.zip",
+          "sha256": "9713fea7d6cdaf2bd16c83dfef7fa4649b1209724ae9d71fc335ad959b5ff8a2",
           "min_macos": "15.0",
           "minisign": {
-            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViTHzOyqFwk8pIby8ODb4z00tOuH1pSqtZ4haKdzqwhl2tZR9319aLWfscRSEm0K4yUOW0fT0pZWqQq2gojgAygU=\ntrusted comment: timestamp:1782762236\tfile:osaurus.vision-1.0.2-macos-arm64.zip\n60RGGWb3cUAmvmE5PLqOiADhegGrCtFcFCsd4xmFgbYHW17eJhEHEpEHeBH+ZH57ayhNW/6HY5hZ1bZqjVVxAA=="
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6Vic7NAMdo5DDG8teedOHSvVt9xsS5ZOMCneQyBOYetwTM2iTxfGZC6RoktDciRIcQ9YVCIs9KGRL6a2xWqKAfoAc=\ntrusted comment: timestamp:1770231204\tfile:osaurus.vision-1.0.0-macos-arm64.zip\ngtBJ/ETcpvl6dWSLtfXe7lNu7EDZaKzZDqgiVX3ZJQ0kTXZe+zlp82OaKnbPbay9csKZyMysgZrEHpWO4+ggCA=="
           }
         }
       ]

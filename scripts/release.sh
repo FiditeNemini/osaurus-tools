@@ -7,8 +7,8 @@
 #   ./scripts/release.sh all [version]           Release all tools
 #
 # Examples:
-#   ./scripts/release.sh time                    # Uses version from Plugin.swift
-#   ./scripts/release.sh time 1.0.0              # Explicit version
+#   ./scripts/release.sh fetch                    # Uses version from Plugin.swift
+#   ./scripts/release.sh fetch 1.0.0              # Explicit version
 #   ./scripts/release.sh all                     # Release all tools with their Plugin.swift versions
 #   ./scripts/release.sh all 1.0.0               # Release all tools with same version
 #
@@ -34,15 +34,15 @@ if [ $# -lt 2 ]; then
     echo "Usage: $0 <tool-name|all> <version>"
     echo ""
     echo "Commands:"
-    echo "  <tool-name>    Release a specific tool (e.g., time, git, browser)"
+    echo "  <tool-name>    Release a specific tool (e.g., fetch, browser)"
     echo "  all            Release all tools in the tools/ directory"
     echo ""
     echo "Arguments:"
     echo "  <version>      Version to release (e.g., 1.0.0) - REQUIRED"
     echo ""
     echo "Examples:"
-    echo "  $0 time 1.0.0              # Release time v1.0.0"
-    echo "  $0 git 2.0.0               # Release git v2.0.0"
+    echo "  $0 fetch 1.0.0             # Release fetch v1.0.0"
+    echo "  $0 browser 2.0.0           # Release browser v2.0.0"
     echo "  $0 all 1.0.0               # Release all tools with version 1.0.0"
     exit 1
 fi

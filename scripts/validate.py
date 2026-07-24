@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import hashlib
 import json
 import os
 import sys
@@ -25,6 +26,72 @@ MINISIGN_PUBKEY_REGEX = re.compile(r"^RW[A-Za-z0-9+/]{50,}={0,2}$")
 
 def validate_semver(version):
     return bool(SEMVER_REGEX.match(version))
+
+def semver_sort_key(version):
+    """Sort key implementing semver precedence (build metadata ignored)."""
+    m = SEMVER_REGEX.match(version)
+    major, minor, patch = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    prerelease = m.group(4)
+    if prerelease is None:
+        # A release version has higher precedence than any of its pre-releases
+        pre_key = (1,)
+    else:
+        identifiers = []
+        for ident in prerelease.split("."):
+            if ident.isdigit():
+                identifiers.append((0, int(ident), ""))
+            else:
+                identifiers.append((1, 0, ident))
+        pre_key = (0, tuple(identifiers))
+    return (major, minor, patch, pre_key)
+
+def validate_versions_order(versions, filepath):
+    """Versions must be unique and sorted descending by semver (newest first)."""
+    version_strings = [v.get("version") for v in versions if isinstance(v, dict) and "version" in v]
+    valid = True
+
+    duplicates = {v for v in version_strings if version_strings.count(v) > 1}
+    if duplicates:
+        print(f"Error in {filepath}: Duplicate versions found: {sorted(duplicates)}")
+        valid = False
+
+    parseable = [v for v in version_strings if validate_semver(v)]
+    expected = sorted(parseable, key=semver_sort_key, reverse=True)
+    if parseable != expected:
+        print(f"Error in {filepath}: 'versions' must be sorted descending by semver (newest first)")
+        print(f"  Current order:  {parseable}")
+        print(f"  Expected order: {expected}")
+        valid = False
+
+    return valid
+
+def validate_requires(data, filepath):
+    """
+    Every plugin must declare the minimum Osaurus version at the top level:
+    either 'requires.osaurus_min_version' (external plugins) or 'min_osaurus'
+    (core tools, synced from the dylib manifest by regenerate-catalogs.py).
+    """
+    requires = data.get("requires")
+    if requires is not None and not isinstance(requires, dict):
+        print(f"Error in {filepath}: 'requires' must be a dictionary")
+        return False
+
+    if isinstance(requires, dict):
+        min_version = requires.get("osaurus_min_version")
+        field = "requires.osaurus_min_version"
+    else:
+        min_version = data.get("min_osaurus")
+        field = "min_osaurus"
+
+    if not isinstance(min_version, str) or not min_version:
+        print(f"Error in {filepath}: Missing top-level 'requires.osaurus_min_version' (or 'min_osaurus' for core tools)")
+        return False
+
+    if not validate_semver(min_version):
+        print(f"Error in {filepath}: Invalid {field} '{min_version}'")
+        return False
+
+    return True
 
 def validate_public_keys(public_keys, context):
     """Validate public_keys object contains valid minisign public key."""
@@ -92,23 +159,6 @@ def validate_minisign_signature(minisign_obj, context):
     
     return True
 
-#
-# One-time key rotation (2026-04): the org-wide minisign keypair was rotated,
-# but the four plugins built in this repo were left registered against the
-# previous key. This allowlist permits a single rotation PR to update their
-# `public_keys.minisign`. The host (Osaurus) recovers automatically via the
-# TOFU code in PluginInstallManager when it sees the registry key change.
-#
-# REMOVE THIS ALLOWLIST IN A FOLLOW-UP PR IMMEDIATELY AFTER THE ROTATION
-# LANDS, so the immutability check applies to all plugins again.
-KEY_ROTATION_ALLOWLIST = {
-    "osaurus.browser",
-    "osaurus.fetch",
-    "osaurus.search",
-    "osaurus.time",
-}
-
-
 def check_public_key_immutability(filepath, current_public_key):
     """
     Check that public key hasn't changed from base branch.
@@ -149,18 +199,6 @@ def check_public_key_immutability(filepath, current_public_key):
             return True
         
         if current_public_key != base_public_key:
-            plugin_id = os.path.splitext(os.path.basename(filepath))[0]
-            if plugin_id in KEY_ROTATION_ALLOWLIST:
-                print(
-                    f"  WARNING: public key change permitted via KEY_ROTATION_ALLOWLIST for {plugin_id}"
-                )
-                print(f"    Base branch ({base_ref}) key: {base_public_key}")
-                print(f"    Current key: {current_public_key}")
-                print(
-                    "    REMOVE this entry from KEY_ROTATION_ALLOWLIST after the rotation PR merges."
-                )
-                return True
-
             print(f"Error: Public key modification detected!")
             print(f"  Base branch ({base_ref}) key: {base_public_key}")
             print(f"  Current key: {current_public_key}")
@@ -179,9 +217,10 @@ def check_public_key_immutability(filepath, current_public_key):
         return True
 
 def verify_artifact_signature(artifact, public_key, context):
-    """Download artifact and verify minisign signature against public key."""
+    """Download artifact and verify sha256 checksum and minisign signature."""
     url = artifact["url"]
     signature = artifact["minisign"]["signature"]
+    expected_sha256 = artifact["sha256"].lower()
     
     # Create temporary directory for verification
     tmpdir = tempfile.mkdtemp(prefix="osaurus_verify_")
@@ -192,9 +231,22 @@ def verify_artifact_signature(artifact, public_key, context):
         try:
             urllib.request.urlretrieve(url, artifact_path)
         except Exception as e:
-            print(f"  Warning in {context}: Could not download artifact for signature verification: {e}")
-            print(f"  Skipping signature verification (artifact unreachable)")
-            return True  # Don't fail on unreachable artifacts (might be new release not yet published)
+            print(f"Error in {context}: Could not download artifact for signature verification: {e}")
+            print(f"  Unreachable artifacts are a validation failure when VERIFY_SIGNATURES is enabled")
+            return False
+        
+        # Verify sha256 of the downloaded artifact matches the registry value
+        sha256 = hashlib.sha256()
+        with open(artifact_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                sha256.update(chunk)
+        actual_sha256 = sha256.hexdigest()
+        if actual_sha256 != expected_sha256:
+            print(f"Error in {context}: SHA256 mismatch for downloaded artifact")
+            print(f"  Registry sha256: {expected_sha256}")
+            print(f"  Actual sha256:   {actual_sha256}")
+            return False
+        print(f"  SHA256 verified for {os.path.basename(url)}")
         
         # Write public key file (minisign format requires specific format)
         pubkey_path = os.path.join(tmpdir, "minisign.pub")
@@ -272,18 +324,31 @@ def validate_capabilities(capabilities, context):
 
     valid = True
 
-    # tools: array of {name, description}
+    # tools: array of {name, description}. Names must be present, non-empty,
+    # and unique — mirrors the manifest conformance lint in the release
+    # workflows (tool *ids* there project to `name` in the registry catalog).
     if "tools" in capabilities:
         tools = capabilities["tools"]
         if not isinstance(tools, list):
             print(f"Error in {context}: 'capabilities.tools' must be an array")
             valid = False
         else:
+            seen_tool_names = set()
             for idx, tool in enumerate(tools):
                 tc = f"{context} -> tools[{idx}]"
                 if not isinstance(tool, dict):
                     print(f"Error in {tc}: each tool must be an object")
                     valid = False
+                    continue
+                name = tool.get("name")
+                if not isinstance(name, str) or not name.strip():
+                    print(f"Error in {tc}: tool must have a non-empty string 'name'")
+                    valid = False
+                    continue
+                if name in seen_tool_names:
+                    print(f"Error in {tc}: duplicate tool name '{name}'")
+                    valid = False
+                seen_tool_names.add(name)
 
     # skills: array of {name, description} or null
     if "skills" in capabilities and capabilities["skills"] is not None:
@@ -476,7 +541,7 @@ def validate_plugin_file(filepath, seen_ids):
         return False
 
     if not re.match(r"^[a-z0-9]+(\.[a-z0-9_-]+)+$", plugin_id):
-        print(f"Error: plugin_id '{plugin_id}' must be in dot-separated format (e.g., osaurus.time, osaurus.macos-use)")
+        print(f"Error: plugin_id '{plugin_id}' must be in dot-separated format (e.g., osaurus.fetch, mycompany.my-tool)")
         return False
 
     # Unique Constraint: Ensure no duplicate plugin_ids (case-insensitive)
@@ -513,10 +578,16 @@ def validate_plugin_file(filepath, seen_ids):
         if not validate_docs(data["docs"], filepath):
             return False
 
+    if not validate_requires(data, filepath):
+        return False
+
     # Empty versions array is allowed for unreleased plugins
     if len(data["versions"]) == 0:
         print(f"  Note: No versions published yet for {plugin_id}")
         return True
+
+    if not validate_versions_order(data["versions"], filepath):
+        return False
 
     # Check if signature verification is enabled (via environment variable)
     verify_signatures = os.environ.get("VERIFY_SIGNATURES", "").lower() in ("1", "true", "yes")
