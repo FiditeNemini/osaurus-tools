@@ -10,20 +10,20 @@
   "capabilities": {
     "tools": [
       {
-        "name": "fetch",
-        "description": "Send any HTTP request and return status, headers, body, final URL, redirect chain, and protocol version. SSRF guard blocks private/loopback/link-local/metadata IPs by default."
+        "description": "Send any HTTP request and return status, headers, body, final URL, redirect chain, and protocol version. SSRF guard blocks private/loopback/link-local/metadata IPs by default.",
+        "name": "fetch"
       },
       {
-        "name": "fetch_json",
-        "description": "GET/POST a URL and return parsed JSON. Sets Accept: application/json automatically. If the body isn't valid JSON, data.json is null and data.body holds the raw text."
+        "description": "GET/POST a URL and return parsed JSON. Sets Accept: application/json automatically. If the body isn't valid JSON, data.json is null and data.body holds the raw text.",
+        "name": "fetch_json"
       },
       {
-        "name": "fetch_html",
-        "description": "Fetch an HTML page and extract its main content as Markdown. Returns title, byline, excerpt, lang, markdown, word_count. Set extract='raw' to return the full HTML, or extract='text' for plain text."
+        "description": "Fetch an HTML page and extract its main content as Markdown. Returns title, byline, excerpt, lang, markdown, word_count. Set extract='raw' to return the full HTML, or extract='text' for plain text.",
+        "name": "fetch_html"
       },
       {
-        "name": "download",
-        "description": "Download a file into ~/Downloads. Filename must be a plain name (no path separators, no '..', no leading '.' or '~'). Resolved path is verified to stay under ~/Downloads."
+        "description": "Download a file into ~/Downloads. Filename must be a plain name (no path separators, no '..', no leading '.' or '~'). Resolved path is verified to stay under ~/Downloads.",
+        "name": "download"
       }
     ],
     "skills": [
@@ -34,6 +34,23 @@
     ]
   },
   "versions": [
+    {
+      "version": "2.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-tools/releases/download/fetch-2.1.0/osaurus.fetch-2.1.0-macos-arm64.zip",
+          "sha256": "ac25217656b30cb6149291793d452a09537c4f77da4758cf379ce4024800c0da",
+          "size": 144934,
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViVSN46wsX8ZSiQopym6hCWbQu+DuKLDW0deyKKVGQuNsvw+odZ1ZUD8dpWQcFUAPBQma8440iw0IAAsNJkx4ZAI=\ntrusted comment: timestamp:1784866564\tfile:osaurus.fetch-2.1.0-macos-arm64.zip\npm4bYBJQTBxmM9c5v2SlQ2ht4xisjYR8wWNkIEC6oJ7VERH60md5DAaljtkYF2TmUQKHmf9gvOlcaOa5FtNHCA=="
+          }
+        }
+      ]
+    },
     {
       "version": "2.0.0",
       "release_date": "2026-04-22",
