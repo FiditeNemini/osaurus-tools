@@ -22,7 +22,7 @@
         "name": "maps_get_directions"
       },
       {
-        "description": "Drop a pin at a specific location",
+        "description": "Open Maps at a specific location so the user can drop a pin (the pin is not created automatically)",
         "name": "maps_drop_pin"
       },
       {
@@ -31,11 +31,11 @@
         "name": "maps_list_guides"
       },
       {
-        "description": "Add a location to a guide",
+        "description": "Open Maps at a location so the user can add it to a guide (the location is not added automatically)",
         "name": "maps_add_to_guide"
       },
       {
-        "description": "Create a new guide",
+        "description": "Open the Guides view in Maps so the user can create a guide (the guide is not created automatically)",
         "name": "maps_create_guide"
       },
       {
@@ -53,6 +53,22 @@
     "osaurus_min_version": "0.5.0"
   },
   "versions": [
+    {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-maps/releases/download/1.1.0/osaurus.maps-1.1.0-macos-arm64.zip",
+          "sha256": "0390b830e57c152b6d0b5b41e3a47b711e4fb158962096003e5d7ebe7113a0f4",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWQ7C4tF5waprbBBf0+TQWrgaj1XNK78I9tclhLdR3qksKf1iKbTayCcaOD/i9KpbIxeSZY4i2Qrzeplo9Jax4L2xQa2PXlIrwg=\ntrusted comment: timestamp:1784866270\tfile:osaurus.maps-1.1.0-macos-arm64.zip\n+AlgLGPW9J5yhMYx2kGsLnC+290vjGdG2KLfVGLgbdPgrd7JAKPRtBgNo3axzfzwXB0QjtzdSz3o+HT7KvpQCw=="
+          }
+        }
+      ]
+    },
     {
       "version": "1.0.5",
       "release_date": "2026-06-29",
