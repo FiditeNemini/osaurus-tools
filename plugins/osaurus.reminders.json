@@ -15,7 +15,7 @@
         "name": "get_reminders"
       },
       {
-        "description": "Search reminders by title or notes.",
+        "description": "Search reminders by title or notes. Searches all incomplete reminders plus reminders completed within the last 30 days.",
         "name": "search_reminders"
       },
       {
@@ -41,6 +41,22 @@
     "osaurus_min_version": "0.5.0"
   },
   "versions": [
+    {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-reminders/releases/download/1.1.0/osaurus.reminders-1.1.0-macos-arm64.zip",
+          "sha256": "ee54d2a80082c8f55aa45bd1fc1b06d7ce61bcf1f30954985fbc12bc685da5fd",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWREzUdfZma6LujGMqbRfquw1lRR3eiytM2ZkND37U2MPYWZKOi3o5M5hXnOX/6Uq+Ff0Gx9PjQ+8x1GRM993WkUOqG33coReQA=\ntrusted comment: timestamp:1784866694\tfile:osaurus.reminders-1.1.0-macos-arm64.zip\n4tXFtY2Nd9J2knyoNDynaxYe4OF3MXHYllHL1gOVLDlu5JIwyQCC9tUjrtnc75nsnnpJcHRIcYXe0jPKLDooAQ=="
+          }
+        }
+      ]
+    },
     {
       "version": "1.0.4",
       "release_date": "2026-06-29",
