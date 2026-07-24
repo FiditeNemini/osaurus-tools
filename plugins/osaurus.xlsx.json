@@ -28,7 +28,7 @@
         "name": "create_xlsx"
       },
       {
-        "description": "Write or update specific cells in a workbook that is already loaded in memory. If the sheet does not exist, it will be created. Use save_xlsx afterwards to persist changes to disk.",
+        "description": "Write or update specific cells in a workbook that is already loaded in memory. If the sheet does not exist, it will be created. Invalid cells are skipped and reported in the errors field of the result. Use save_xlsx afterwards to persist changes to disk.",
         "name": "write_cells"
       },
       {
@@ -44,7 +44,7 @@
         "name": "csv_to_xlsx"
       },
       {
-        "description": "Apply batch modifications to a workbook in memory. Supports setting cells, formulas, deleting rows/columns, renaming sheets, and adding sheets. Use save_xlsx afterwards to persist.",
+        "description": "Apply batch modifications to a workbook in memory. Supports setting cells, formulas, deleting rows/columns, renaming sheets, and adding sheets. Invalid operations are skipped and reported in the errors field of the result. Note: delete_row/delete_column shift cell values only; formula references and merged ranges are not adjusted. Use save_xlsx afterwards to persist.",
         "name": "modify_xlsx"
       }
     ],
@@ -63,6 +63,22 @@
     "osaurus_min_version": "0.5.0"
   },
   "versions": [
+    {
+      "version": "1.2.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-xlsx/releases/download/1.2.0/osaurus.xlsx-1.2.0-macos-arm64.zip",
+          "sha256": "2e62f6200e2b4c993ae2553055a73a79e8b529161bac25eda30963542af6371a",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViTkrZrpCCeKSnaf3HvpoSKZp1g9drhBMCEb329fGj3OWsh6gOAyxyIxeJLPKacrHHTcHqaZSm6jK6S589qJmYAg=\ntrusted comment: timestamp:1784867114\tfile:osaurus.xlsx-1.2.0-macos-arm64.zip\nMtnnMuNv7yS67qRURpnRQWEYigO82Z0eF0hCM0jade3+jbSa5ZDzwBEI7tEfKS1Ovxkh8llYuDsfD++4sbx0Ag=="
+          }
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "release_date": "2026-06-29",
