@@ -78,6 +78,22 @@
   },
   "versions": [
     {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-images/releases/download/1.1.0/osaurus.images-1.1.0-macos-arm64.zip",
+          "sha256": "afdcadc9415d7e1a933f51764490b184e8fb240bbed8a42ec958a61e7d4d7d14",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViVJdux0z1aRJ0A25XD4utWE4ewRg8PVEwtpkYOcV1JlM3eocdgkM/qZdPbsRrR5L0jypLPE16Ok88qyYTQ2r3gQ=\ntrusted comment: timestamp:1784866513\tfile:osaurus.images-1.1.0-macos-arm64.zip\nYl5ku5WUzK9zvJaIOhorZH5BIcs0No+cBBEHO+FfdWvU2GpLWxnB19Y9KYiFf6b+lXSNcZNRAwQ4ZHvOEIGhAQ=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.0.4",
       "release_date": "2026-06-29",
       "artifacts": [
