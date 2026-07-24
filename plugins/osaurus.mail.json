@@ -63,6 +63,22 @@
   },
   "versions": [
     {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-mail/releases/download/1.1.0/osaurus.mail-1.1.0-macos-arm64.zip",
+          "sha256": "e4a96e2500b62f17c5f607822967ba3f1582f325336962bca003ccfbd1b572ef",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViQ9DsGM20Ss7OqIE3XNZY7r120AAt+LF+I96snK8qkkpsMwp/ljLTRQhAWSyVOLvAgwHykYwwP+C2b9ryVJ6JwM=\ntrusted comment: timestamp:1784866366\tfile:osaurus.mail-1.1.0-macos-arm64.zip\n8+jY8Mk0W6f6ozfriLBPgEIq28T4UYthKJrg0uckXV0nfqUZ0dmJzv4mdeM+40ntG8K7Th54mQzVTcHI3J4cDA=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.0.6",
       "release_date": "2026-06-29",
       "artifacts": [
