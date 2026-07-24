@@ -61,6 +61,15 @@ jobs:
           VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      # Test on the runner's default (Xcode) toolchain BEFORE installing the
+      # pinned swift.org toolchain: the swift.org toolchain's test harness
+      # exits with SIGTRAP after the XCTest phase on macOS runners, while
+      # artifact builds below stay on the pinned toolchain. A separate scratch
+      # path keeps the two toolchains from sharing build state.
+      - name: Run tests
+        timeout-minutes: 30
+        run: swift test --scratch-path .build-test
+
       - name: Set up Swift
         uses: swift-actions/setup-swift@v2
         with:
@@ -68,9 +77,6 @@ jobs:
 
       - name: Build release
         run: swift build -c release
-
-      - name: Run tests
-        run: swift test
 
       - name: Find dylib
         id: find
