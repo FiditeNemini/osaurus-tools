@@ -71,6 +71,22 @@
   },
   "versions": [
     {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-music/releases/download/1.1.0/osaurus.music-1.1.0-macos-arm64.zip",
+          "sha256": "8882214c3717e5487b6e6b69b73986f0c1378b49ca368c25ad58d2c1991c8849",
+          "min_macos": "15.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTmCafy0+6ViUk667Q2d+LsrV9hihFg/J5FoJYS1fVBLzBHpYLFqTnchYppk6XVHnEkOqiB86YjZNk4Yk5bivUnxGY8mXpGOAc=\ntrusted comment: timestamp:1784866164\tfile:osaurus.music-1.1.0-macos-arm64.zip\n9OrYwzlQayIE4NYeeUqrzoz3xUMo64QK/pT7OMXNHV8QhXN0ZlGTG1NJ/jecfGAybW69W3PN4FCSqVKY6yxbAA=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.0.6",
       "release_date": "2026-06-29",
       "artifacts": [
