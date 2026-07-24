@@ -33,6 +33,22 @@
   },
   "versions": [
     {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-notes/releases/download/1.1.0/osaurus.notes-1.1.0-macos-arm64.zip",
+          "sha256": "651b332659f6274dea6f56a925157874534a6e0a64f2663c7109368cf7aa0096",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWRdaSQL/7fTgbfxteS1F7RYn6SJKdx1/rbjwwfKkLY/8NBcXktiv2BcVJLkHAuZ0eWuO35mMFPQFOAXyxohSEhPw6vrZ8UUfAo=\ntrusted comment: timestamp:1784866234\tfile:osaurus.notes-1.1.0-macos-arm64.zip\n59wx8DKhjxBv1kprhj3/1fk4WVXgBxpsLJH++CU1bvI838nA2CvYe4CoHZnYObrFX22MonYAXxs/ph05tZJwBQ=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.0.4",
       "release_date": "2026-06-29",
       "artifacts": [
