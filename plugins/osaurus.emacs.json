@@ -24,6 +24,22 @@
   },
   "versions": [
     {
+      "version": "1.1.0",
+      "release_date": "2026-07-24",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-emacs/releases/download/1.1.0/osaurus.emacs-1.1.0-macos-arm64.zip",
+          "sha256": "f713b2884add8429c3c2599110a462a60e5985ec341b29a55a7b45e3361667fa",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWReb8UOobdnaJedwS9TifaG/yv9NsbXnYY+BCBLdqkyUAWcYJb8u0mRpux5gGnEYRfYOlEZSZbkYFkZ/Mh4DsjhfpC7C+habgo=\ntrusted comment: timestamp:1784866988\tfile:osaurus.emacs-1.1.0-macos-arm64.zip\nsnrMf0shKADyeitBM1YbTC0V60a4W8AormoEdyaBJUBNssqMD4Zgo9qSBad8whNLQslCzaxA1tsDk1AeP/PgDw=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.0.3",
       "release_date": "2026-06-29",
       "artifacts": [
