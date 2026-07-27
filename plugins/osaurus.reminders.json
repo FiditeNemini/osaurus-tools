@@ -42,6 +42,22 @@
   },
   "versions": [
     {
+      "version": "1.1.1",
+      "release_date": "2026-07-27",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-reminders/releases/download/1.1.1/osaurus.reminders-1.1.1-macos-arm64.zip",
+          "sha256": "0ff3614d0468dbab34544e3740c995a1d78bd8d6b0e2e093ba8a05e02c82909e",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWREzUdfZma6LipcjGgzIvo7pPz5v+9JN49NCiHx8yYZ7ZoZ97SZI75E77gWWQN3UXHxd1ofXZlNvW4cFw4cgk10qpnCulwNqw4=\ntrusted comment: timestamp:1785119086\tfile:osaurus.reminders-1.1.1-macos-arm64.zip\nDGR7QittQqufixDFGbZLkmVNKUJFyqWunK4aOjMTpzCSGa6AGShYo3s10Usywd0YMKF6SO2VdRkTMLe4f3i4Bw=="
+          }
+        }
+      ]
+    },
+    {
       "version": "1.1.0",
       "release_date": "2026-07-24",
       "artifacts": [
