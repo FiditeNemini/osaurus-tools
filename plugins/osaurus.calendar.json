@@ -10,12 +10,16 @@
   "capabilities": {
     "tools": [
       {
+        "description": "List all calendars with their account name, writability, and which one is the default. Use this before create_event when the user has multiple accounts or the target calendar is ambiguous.",
+        "name": "list_calendars"
+      },
+      {
         "widget": true,
-        "description": "Get calendar events in a specified date range",
+        "description": "Get calendar events in a date range. Always set fromDate and toDate to cover the exact period the user asked for (a week, a month, specific days); without them only the next 7 days are returned. Dates in results are in the user's local time zone. The response includes totalInRange and truncated so you can tell if the list is complete.",
         "name": "get_events"
       },
       {
-        "description": "Search for calendar events that match the search text",
+        "description": "Search for calendar events whose title matches the search text. Set fromDate/toDate to cover the period the user asked for (default range: today to 30 days out). Dates in results are in the user's local time zone.",
         "name": "search_events"
       },
       {
@@ -37,6 +41,22 @@
     "osaurus_min_version": "0.5.0"
   },
   "versions": [
+    {
+      "version": "1.2.0",
+      "release_date": "2026-08-04",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-calendar/releases/download/1.2.0/osaurus.calendar-1.2.0-macos-arm64.zip",
+          "sha256": "d6dd68e83362ff16bf529febeb22efbb2dc01a29bfc39c2ec8b3cab2b3e92714",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWSAW6A8VcBx/vrocq1ymr+jnNmFGOwUvcn17cps3m7O4aZ5dB62+ZDY1lGqY8CEZ2OrCY+fLMiqiDzGDWkJEt0pLXLqFpLUdQI=\ntrusted comment: timestamp:1785863236\tfile:osaurus.calendar-1.2.0-macos-arm64.zip\nhuop3NLOIJKk34MWXIYGm6AzJIisderdvKqmzbbGfpKv/x9ONyfIhpHK2kXTZ9Rt4qakY71cuRyj9aD33ArsDA=="
+          }
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "release_date": "2026-07-24",
