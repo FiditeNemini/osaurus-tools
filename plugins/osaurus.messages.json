@@ -22,6 +22,21 @@
         "widget": true,
         "description": "Get all unread messages from all contacts",
         "name": "get_unread_messages"
+      },
+      {
+        "widget": true,
+        "description": "Search message history for text across all conversations, optionally scoped to one contact",
+        "name": "search_messages"
+      },
+      {
+        "widget": true,
+        "description": "List recent conversations (direct and group chats) with unread counts, most recently active first",
+        "name": "list_conversations"
+      },
+      {
+        "widget": true,
+        "description": "Scan recent received messages for likely spam and return flagged candidates with reasons and confidence (read-only, never deletes)",
+        "name": "detect_spam"
       }
     ]
   },
@@ -33,6 +48,22 @@
     "osaurus_min_version": "0.5.0"
   },
   "versions": [
+    {
+      "version": "1.2.0",
+      "release_date": "2026-08-21",
+      "artifacts": [
+        {
+          "os": "macos",
+          "arch": "arm64",
+          "url": "https://github.com/osaurus-ai/osaurus-messages/releases/download/1.2.0/osaurus.messages-1.2.0-macos-arm64.zip",
+          "sha256": "5d5876623efcea92b79da271f08d58cff16a70eaa5de9adb85bfd8e5a13c5c7f",
+          "min_macos": "13.0",
+          "minisign": {
+            "signature": "untrusted comment: signature from minisign secret key\nRWTBzaXEFjz7BLZg/1GBhcsBzQGxbAZyit295ZMQlnHcBgY6FZWaLL0HWQg3uUNdThuiSF4LvgDPwp5jGYA7pOCNZFzWxW1l8QM=\ntrusted comment: timestamp:1787283010\tfile:osaurus.messages-1.2.0-macos-arm64.zip\nl6gomi+CeMupB40PxjEX/6D6FpjGY6oScdZ6TZP0Nq1KnH9wBqpUbCn0ROaJwNeQCQ+3+XMvnmht9zE75mesDQ=="
+          }
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "release_date": "2026-07-24",
